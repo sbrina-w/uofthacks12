@@ -1,0 +1,261 @@
+.achievementsSection {
+  background-color: var(--container-color);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.achievementsSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navButton:not(:disabled):hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.pageIndicator {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.achievementsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  flex: 1;
+}
+
+.achievementCard {
+  background-color: var(--background-color);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  transition: all 0.3s ease;
+  animation: slideUp 0.3s ease forwards;
+}
+
+.achievementCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px var(--shadow-color);
+}
+
+.achievementIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Achievement badge colors */
+.gold {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+}
+
+.purple {
+  background: linear-gradient(135deg, #9333ea, #7c3aed);
+}
+
+.orange {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.green {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.unlockedBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+  border: 2px solid var(--container-color);
+}
+
+.achievementInfo {
+  flex-grow: 1;
+}
+
+.achievementInfo h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.achievementInfo p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.progressWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progressBar {
+  flex-grow: 1;
+  height: 6px;
+  background-color: var(--container-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.75rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  min-width: 45px;
+  text-align: right;
+}
+
+.unlocked .achievementCard {
+  border: 1px solid var(--success-color);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .achievementsSection {
+    padding: 1rem;
+  }
+
+  .achievementsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .achievementCard {
+    padding: 1rem;
+  }
+
+  .achievementIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+}
+
+:root {
+  --gold-start: #ffd700;
+  --gold-end: #ffa500;
+  --purple-start: #9333ea;
+  --purple-end: #7c3aed;
+  --orange-start: #f97316;
+  --orange-end: #ea580c;
+  --blue-start: #3b82f6;
+  --blue-end: #2563eb;
+  --green-start: #22c55e;
+  --green-end: #16a34a;
+}

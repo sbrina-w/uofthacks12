@@ -1,0 +1,161 @@
+:root {
+  --background-color: #f8f9fd;
+  --container-color: #ffffff;
+  --text-color: #2c3e50;
+  --primary-color: #4f46e5;
+  --secondary-color: #818cf8;
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --gradient-start: #4f46e5;
+  --gradient-end: #818cf8;
+}
+
+.app {
+  min-height: 100vh;
+  width: 100vw;
+  background-color: var(--background-color);
+  overflow-x: hidden;
+}
+
+.header {
+  padding: 2rem 2rem 0 2rem;
+  background: var(--container-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin: 0;
+  color: var(--text-color);
+  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.date {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.topSection {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 2fr;
+  gap: 1.5rem;
+  height: 300px;
+}
+
+.middleSection {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  height: 500px;
+}
+
+.bottomSection {
+  width: 100%;
+  height: 300px;
+}
+
+/* Add smooth scrolling to the page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Make sure all sections take up full height */
+.topSection > div,
+.middleSection > div,
+.bottomSection > div {
+  height: 100%;
+}
+
+@media (max-width: 1400px) {
+  .mainContent {
+    padding: 1.5rem;
+  }
+
+  .topSection,
+  .middleSection {
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .topSection {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .middleSection {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+
+  .header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+  }
+
+  .bottomSection {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem 1rem 0 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.75rem;
+  }
+
+  .mainContent {
+    gap: 1rem;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: gray;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
