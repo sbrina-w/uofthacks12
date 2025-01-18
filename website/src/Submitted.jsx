@@ -5,7 +5,7 @@ function Submitted() {
   const navigate = useNavigate();
 
   const handleEdit = () => {
-    navigate('/application');
+    navigate('/');
   };
 
   return (

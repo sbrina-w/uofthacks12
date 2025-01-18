@@ -38,7 +38,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/application" element={<Application />} />
+        <Route path="/" element={<Application />} />
         <Route path="/submitted" element={<Submitted />} />
       </Routes>
     </Router>
