@@ -1,10 +1,11 @@
 // Initialize storage
 let currentTask = '';
 let taskHistory = [];
+let userName = '';
 
 // Load stored data when popup opens
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['currentTask', 'taskHistory'], (result) => {
+  chrome.storage.local.get(['currentTask', 'taskHistory', 'userName'], (result) => {
     if (result.currentTask) {
       currentTask = result.currentTask;
       document.getElementById('taskInput').value = currentTask;
@@ -13,11 +14,22 @@ document.addEventListener('DOMContentLoaded', () => {
       taskHistory = result.taskHistory;
       displayTaskHistory();
     }
+    if (result.userName) {
+      userName = result.userName;
+      document.getElementById('nameInput').value = userName;
+    }
   });
+});
+
+// Save name when it changes
+document.getElementById('nameInput').addEventListener('input', (e) => {
+  userName = e.target.value.trim();
+  chrome.storage.local.set({ userName: userName });
 });
 
 document.getElementById("submitTask").addEventListener("click", () => {
   const taskInput = document.getElementById("taskInput").value;
+  const name = document.getElementById("nameInput").value.trim();
 
   if (taskInput.trim() === "") {
     alert("Please enter a task.");
@@ -28,13 +40,15 @@ document.getElementById("submitTask").addEventListener("click", () => {
   currentTask = taskInput;
   taskHistory.push({
     task: taskInput,
+    name: name,
     timestamp: new Date().toISOString()
   });
 
   // Update storage
   chrome.storage.local.set({
     currentTask: currentTask,
-    taskHistory: taskHistory
+    taskHistory: taskHistory,
+    userName: name
   });
 
   fetch("http://127.0.0.1:5000/submit_task", {
@@ -42,7 +56,10 @@ document.getElementById("submitTask").addEventListener("click", () => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ task: taskInput }),
+    body: JSON.stringify({ 
+      task: taskInput,
+      userName: name 
+    }),
   })
     .then((response) => {
       if (!response.ok) {
@@ -74,13 +91,8 @@ function displaySteps(steps) {
 }
 
 function displayTaskHistory() {
-  let historyDiv = document.getElementById("taskHistory");
-  if (!historyDiv) {
-    historyDiv = document.createElement("div");
-    historyDiv.id = "taskHistory";
-    document.body.appendChild(historyDiv);
-  }
-
+  const historyDiv = document.getElementById("taskHistory");
+  
   if (taskHistory.length > 0) {
     const historyHTML = taskHistory
       .slice(-5) // Show last 5 tasks
@@ -88,7 +100,7 @@ function displayTaskHistory() {
         const date = new Date(entry.timestamp).toLocaleString();
         return `<div class="history-item">
           <span>${entry.task}</span>
-          <small>${date}</small>
+          <small>${entry.name ? `By: ${entry.name} - ` : ''}${date}</small>
         </div>`;
       })
       .join('');
@@ -97,16 +109,15 @@ function displayTaskHistory() {
       <h3>Recent Tasks:</h3>
       ${historyHTML}
     `;
+  } else {
+    historyDiv.innerHTML = '';
   }
 }
 
-// Clear history function
-function clearHistory() {
+// Clear history button functionality
+document.getElementById("clearHistory").addEventListener("click", () => {
   taskHistory = [];
   chrome.storage.local.set({ taskHistory: [] }, () => {
     displayTaskHistory();
   });
-}
-
-// Optional: Add clear history button
-// document.getElementById("clearHistory").addEventListener("click", clearHistory);
+});
