@@ -41,9 +41,9 @@ def get_context_prompt():
 
 def analyze_screenshot_with_gpt4o(screenshot_base64):
     try:
-        print("\n=== Starting GPT-4o Vision Analysis ===")
-        print(f"Current task: {current_tasks[task_index] if current_tasks else 'No task set'}")
-        print(f"Current user: {current_user}")
+        # print("\n=== Starting GPT-4o Vision Analysis ===")
+        # print(f"Current task: {current_tasks[task_index] if current_tasks else 'No task set'}")
+        # print(f"Current user: {current_user}")
         
         context_prompt = get_context_prompt()
         
@@ -95,7 +95,7 @@ Your characteristics:
 @app.route('/submit_screenshot', methods=['POST'])
 def submit_screenshot():
     try:
-        print("\n📸 New Screenshot Received")
+        # print("\n📸 New Screenshot Received")
         global current_user
         
         data = request.json
@@ -105,18 +105,18 @@ def submit_screenshot():
         # Update current user if provided
         if 'userName' in data and data['userName']:
             current_user = data['userName']
-            print(f"👤 User identified as: {current_user}")
+            # print(f"👤 User identified as: {current_user}")
 
         analysis = analyze_screenshot_with_gpt4o(data['screenshot'])
         
         # Speak the analysis using TTS
         try:
             speak_text(analysis)
-            print("🔊 Speaking analysis...")
+            # print("🔊 Speaking analysis...")
         except Exception as e:
             print(f"❌ TTS Error: {str(e)}")
         
-        print(f"✅ Analysis complete: {analysis}\n")
+        # print(f"✅ Analysis complete: {analysis}\n")
         
         return jsonify({
             "status": "success",
@@ -138,7 +138,7 @@ def submit_task():
         return jsonify({"error": "Invalid data"}), 400
     
     task = data['task']
-    print(f"\n📋 New task submitted: {task}")
+    # print(f"\n📋 New task submitted: {task}")
     
     # Update current user if provided
     if 'userName' in data and data['userName']:
@@ -152,7 +152,7 @@ def submit_task():
     # Clear previous responses when starting new task
     previous_responses.clear()
     
-    print(f"Current task set to: {task}")
+    # print(f"Current task set to: {task}")
     
     return jsonify({"tasks": current_tasks}), 200
     
@@ -169,8 +169,8 @@ def log_data():
     
     print(f"\n📝 Log Entry:")
     #print(f"User: {current_user}")
-    print(f"Message: {message}")
-    print(f"Disobedience Count: {disobedience_count}")
+    # print(f"Message: {message}")
+    # print(f"Disobedience Count: {disobedience_count}")
     return jsonify({"status": "success"}), 200
 
 if __name__ == "__main__":
