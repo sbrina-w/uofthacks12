@@ -1,34 +1,89 @@
 from flask import Flask, request, jsonify
 import base64
-import google.generativeai as genai
 import os
+from openai import OpenAI
 from dotenv import load_dotenv
+from collections import deque
+
+import sys
+sys.path.append('../')
+from ai.tts import speak_text
 
 load_dotenv()
 app = Flask(__name__)
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-if not GEMINI_API_KEY:
-    print("⚠️ WARNING: GEMINI_API_KEY not found in .env file!")
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Configure OpenAI API
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if not OPENAI_API_KEY:
+    print("⚠️ WARNING: OPENAI_API_KEY not found in .env file!")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-def analyze_screenshot_with_gemini(screenshot_base64):
+# Store last 10 AI responses and tasks
+MAX_HISTORY_LENGTH = 10
+previous_responses = deque(maxlen=MAX_HISTORY_LENGTH)
+current_tasks = []
+task_index = 0
+
+def get_context_prompt():
+    """Create a context prompt from previous responses and current task"""
+    task_context = f"The user should be working on: {current_tasks[task_index] if current_tasks else 'No task set'}"
+    if not previous_responses:
+        return task_context + "\nThis is your first observation."
+    
+    context = f"{task_context}\n\nYour previous observations were:\n"
+    for i, response in enumerate(previous_responses, 1):
+        context += f"{i}. {response}\n"
+    return context
+
+def analyze_screenshot_with_gpt4o(screenshot_base64):
     try:
-        print("\n=== Starting Gemini Analysis ===")
-        image_data = base64.b64decode(screenshot_base64)
+        print("\n=== Starting GPT-4o Vision Analysis ===")
+        print(f"Current task: {current_tasks[task_index] if current_tasks else 'No task set'}")
         
-        response = model.generate_content([
-            "What is shown in this screenshot? Is the user working on LeetCode, job applications, or something else?",
-            {"mime_type": "image/jpeg", "data": image_data}
-        ])
+        context_prompt = get_context_prompt()
         
-        print("🤖 Gemini says:", response.text)
-        return response.text
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are a narrator in the style of The Stanley Parable, observing the user's screen and their assigned task.
+
+Your characteristics:
+- Pay close attention to what's on screen and if it matches their assigned task
+- When they're focused on their task: become quietly approving, subtle encouragement
+- When they're distracted or off-task: unleash witty, entertainingly condescending commentary
+- Be specific about what you see that indicates focus or distraction
+- Maintain continuity with your previous observations
+- Keep responses to one impactful sentence"""
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"{context_prompt}\n\nExamine this new image - what is actually on the user's screen and how does it relate to what they're supposed to be doing?"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{screenshot_base64}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=100
+        )
+        
+        analysis = response.choices[0].message.content
+        print("🤖 GPT-4o says:", analysis)
+        
+        previous_responses.append(analysis)
+        return analysis
 
     except Exception as e:
-        print(f"\n❌ Gemini Error: {str(e)}")
+        print(f"\n❌ GPT-4o Error: {str(e)}")
         return f"Analysis failed: {str(e)}"
 
 @app.route('/submit_screenshot', methods=['POST'])
@@ -40,12 +95,21 @@ def submit_screenshot():
         if not data or 'screenshot' not in data:
             return jsonify({"error": "No screenshot data provided"}), 400
 
-        analysis = analyze_screenshot_with_gemini(data['screenshot'])
+        analysis = analyze_screenshot_with_gpt4o(data['screenshot'])
+        
+        # Speak the analysis using TTS
+        try:
+            speak_text(analysis)
+            print("🔊 Speaking analysis...")
+        except Exception as e:
+            print(f"❌ TTS Error: {str(e)}")
+        
         print(f"✅ Analysis complete: {analysis}\n")
         
         return jsonify({
             "status": "success",
-            "analysis": analysis
+            "analysis": analysis,
+            "previous_responses": list(previous_responses)
         }), 200
 
     except Exception as e:
@@ -55,14 +119,25 @@ def submit_screenshot():
 
 @app.route('/submit_task', methods=['POST'])
 def submit_task():
+    global current_tasks, task_index
+    
     data = request.json
     if not data or 'task' not in data:
         return jsonify({"error": "Invalid data"}), 400
     
     task = data['task']
     print(f"\n📋 New task submitted: {task}")
-    tasks = ["leetcode", "apply for job"]
-    return jsonify({"tasks": tasks}), 200
+    
+    # Store just the single input task
+    current_tasks = [task]
+    task_index = 0
+    
+    # Clear previous responses when starting new task
+    previous_responses.clear()
+    
+    print(f"Current task set to: {task}")
+    
+    return jsonify({"tasks": current_tasks}), 200
     
 @app.route('/log', methods=['POST'])
 def log_data():
@@ -76,4 +151,4 @@ def log_data():
 
 if __name__ == "__main__":
     print("\n🚀 Starting Flask server...")
-    app.run(debug=True, port=10000)
+    app.run(debug=True, port=5000)

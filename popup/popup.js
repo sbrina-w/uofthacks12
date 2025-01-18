@@ -1,3 +1,4 @@
+// popup.js
 document.getElementById("submitTask").addEventListener("click", () => {
     const taskInput = document.getElementById("taskInput").value;
   

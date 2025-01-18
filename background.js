@@ -144,8 +144,8 @@ function captureScreenshot() {
       })
       .then(response => response.json())
       .then(data => {
-          console.log("Gemini Analysis:", data.analysis);
-          sendToBackend(`Gemini analyzed: ${data.analysis}`);
+          console.log("gpt Analysis:", data.analysis);
+          sendToBackend(`gpt analyzed: ${data.analysis}`);
       })
       .catch(error => {
           console.error("Error:", error);
@@ -153,6 +153,6 @@ function captureScreenshot() {
   });
 }
 
-// Take screenshots every 5 seconds
+// Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 5000);
+setInterval(captureScreenshot, 10000);
