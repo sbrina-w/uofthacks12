@@ -17,6 +17,11 @@ document.getElementById("submitTask").addEventListener("click", () => {
         if (!response.ok) {
           throw new Error("Failed to submit task");
         }
+        return response.json();
+      })
+      .then((data) => {
+        const tasks = data.tasks;  
+        chrome.runtime.sendMessage({ action: "updateTasks", tasks: tasks });
       })
       .catch((error) => {
         console.error("Error submitting task:", error);
