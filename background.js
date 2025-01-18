@@ -43,6 +43,7 @@ function checkLeetCodeTask() {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
       disobedienceCounter = 0;
+      sendToBackend("The user has obeyed the instruction. The user has opened the leetcode page.");
       chrome.scripting.executeScript(
         {
           target: { tabId: tab.id },
@@ -115,8 +116,8 @@ function captureScreenshot() {
       })
       .then(response => response.json())
       .then(data => {
-          console.log("Gemini Analysis:", data.analysis);
-          sendToBackend(`Gemini analyzed: ${data.analysis}`);
+          console.log("gpt Analysis:", data.analysis);
+          sendToBackend(`gpt analyzed: ${data.analysis}`);
       })
       .catch(error => {
           console.error("Error:", error);
@@ -124,9 +125,9 @@ function captureScreenshot() {
   });
 }
 
-// Take screenshots every 5 seconds
+// Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 5000);
+setInterval(captureScreenshot, 10000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
