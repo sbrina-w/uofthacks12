@@ -53,6 +53,7 @@ pillow==11.1.0
 propcache==0.2.1
 pydantic==2.10.5
 pydantic_core==2.27.2
+pygame==2.6.1
 pypdf==5.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
