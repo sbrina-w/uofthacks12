@@ -29,7 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   editButton.addEventListener('click', () => {
     nameDisplay.style.display = 'none';
-    nameInputContainer.style.display = 'block';
+    nameInputContainer.style.display = 'flex';
+    nameInputContainer.style.flexDirection = 'column';
+    nameInputContainer.style.gap = '8px';
     nameInput.value = userName;
     nameInput.focus();
   });
@@ -54,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
   nameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       saveName.click();
+    }
+  });
+
+  // Set up task input
+  const taskInput = document.getElementById('taskInput');
+  taskInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      document.getElementById('submitTask').click();
     }
   });
 });
@@ -158,14 +168,19 @@ document.getElementById("submitTask").addEventListener("click", () => {
 });
 
 function displayTaskHistory() {
-  const historyDiv = document.getElementById("taskHistory");
+  const historyItemsDiv = document.querySelector('#taskHistory .history-items');
   
   if (taskHistory.length > 0) {
     const historyHTML = taskHistory
       .slice(-5) // Show last 5 tasks
       .reverse() // Show newest first
       .map(entry => {
-        const date = new Date(entry.timestamp).toLocaleString();
+        const date = new Date(entry.timestamp).toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
         return `<div class="history-item" data-timestamp="${entry.timestamp}">
           <div class="history-content">
             <span>${entry.task}</span>
@@ -173,19 +188,19 @@ function displayTaskHistory() {
               <small>${date}</small>
             </div>
           </div>
-          <button class="delete-button">
+          <button class="delete-button" aria-label="Delete task">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
           </button>
         </div>`;
       })
       .join('');
     
-    historyDiv.innerHTML = `
-      <h3>Recent Tasks:</h3>
-      ${historyHTML}
-    `;
+    historyItemsDiv.innerHTML = historyHTML;
   } else {
-    historyDiv.innerHTML = '';
+    historyItemsDiv.innerHTML = `
+      <div style="text-align: center; color: #6c757d; padding: 20px 0;">
+        No tasks yet
+      </div>`;
   }
 }
 
