@@ -1,28 +1,30 @@
 {
-    "manifest_version": 3,
-    "name": "ProcrastiNarrator",
-    "description": "Stay on task with a narration of your actions from a third-person perspective, inspired by the game The Stanley Parable.",
-    "version": "1.0",
-    "permissions": [
-      "tabs", 
-      "activeTab",
-      "storage",
-      "scripting"
-    ],
-    "host_permissions": [
-      "https://leetcode.com/*",
-      "https://docs.google.com/*",
-      "https://linkedin.com/*",
-      "https://jobportal.com/*"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
+  "manifest_version": 3,
+  "name": "ProcrastiNarrator",
+  "description": "Stay on task with a narration of your actions from a third-person perspective, inspired by the game The Stanley Parable.",
+  "version": "1.0",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "https://docs.google.com/*",
+    "https://linkedin.com/*",
+    "https://jobportal.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "/popup/popup.html"
   }
-  
+}
