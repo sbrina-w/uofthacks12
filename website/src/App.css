@@ -54,6 +54,10 @@ h1 {
   gap: 20px;
 }
 
+.submitted-container {
+  width: 60vh;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
