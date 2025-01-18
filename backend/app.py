@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -6,7 +7,7 @@ app = Flask(__name__)
 def submit_task():
     data = request.json
     if not data or 'task' not in data:
-        return "Invalid data", 400
+        return jsonify({"error": "Invalid data"}), 400
     
     task = data['task']
     print(task)

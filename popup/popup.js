@@ -21,6 +21,7 @@ document.getElementById("submitTask").addEventListener("click", () => {
       })
       .then((data) => {
         const tasks = data.tasks;  
+        displaySteps(tasks);
         chrome.runtime.sendMessage({ action: "updateTasks", tasks: tasks });
       })
       .catch((error) => {
@@ -30,3 +31,13 @@ document.getElementById("submitTask").addEventListener("click", () => {
     document.getElementById("taskInput").value = "";
   });
   
+  function displaySteps(steps) {
+    let stepsDiv = document.getElementById("stepsDiv");
+    if (!stepsDiv) {
+      stepsDiv = document.createElement("div");
+      stepsDiv.id = "stepsDiv";
+      document.body.appendChild(stepsDiv);
+    }
+    const stepsText = "Steps: " + steps;
+    stepsDiv.innerHTML = stepsText;
+  }
