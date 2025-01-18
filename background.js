@@ -19,7 +19,7 @@ let tasks = {
       //   giveFeedback(activeInfo.tabId, "on job page");
       // }
       else {
-        checkDistractions(tab.url);
+        checkDistractions(tabId, tab.url);
       }
     });
   });
@@ -33,9 +33,9 @@ let tasks = {
     });
   }
   
-  function checkDistractions(url) {
+  function checkDistractions(tabId, url) {
     if (url.includes("youtube.com") || url.includes("twitter.com")) {
-      giveFeedback("offtask (placeholder for narration)");
+      giveFeedback(tabId, "offtask (placeholder for narration)");
     }
   }
   
