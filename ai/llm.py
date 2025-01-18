@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms import ChatMessage
+from tts import speak_text
 
 # Load environment variables
 load_dotenv()
@@ -15,7 +16,7 @@ def create_chatbot():
     # System message to set the chatbot's personality
     system_message = ChatMessage(
         role="system",
-        content="You are a helpful and friendly AI assistant. You provide clear and concise responses."
+        content="you narrate in Stanley parable style. your responses are incredibly witty and condescending, but concise and 2 sentences max. "
     )
     
     print("Chatbot initialized! Type 'quit' to exit.")
@@ -27,6 +28,7 @@ def create_chatbot():
         # Check for exit condition
         if user_input.lower() == 'quit':
             print("Goodbye!")
+            speak_text("Goodbye!")
             break
         
         try:
@@ -40,7 +42,10 @@ def create_chatbot():
             response = llm.chat(messages)
             # Remove 'assistant: ' prefix from the response
             clean_response = str(response).replace('assistant:', '').strip()
+            
+            # Print and speak the response
             print(f"\nChatbot: {clean_response}")
+            speak_text(clean_response)
             
         except Exception as e:
             print(f"\nError: {str(e)}")
