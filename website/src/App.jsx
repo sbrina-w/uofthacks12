@@ -1,7 +1,16 @@
 import './App.css';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import antImage from './assets/ant.png';
+import Submitted from './Submitted';
 
-function App() {
+function Application() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate('/submitted');
+  };
+
   return (
     <div className="container">
       <div className="left">
@@ -9,7 +18,7 @@ function App() {
       </div>
       <div className="right">
         <h1>Submit Job Application</h1>
-        <form className="application-form">
+        <form className="application-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="name">Name: </label>
             <input type="text" id="name" placeholder="Enter your name" />
@@ -22,6 +31,17 @@ function App() {
         </form>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/application" element={<Application />} />
+        <Route path="/submitted" element={<Submitted />} />
+      </Routes>
+    </Router>
   );
 }
 
