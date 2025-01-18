@@ -7,9 +7,13 @@
     "tabs",
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "desktopCapture",
+    "<all_urls>"
+
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://leetcode.com/*",
     "https://docs.google.com/*",
     "https://linkedin.com/*",

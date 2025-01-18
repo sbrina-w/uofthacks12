@@ -1,3 +1,4 @@
+// background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
 let tasks = [];
@@ -125,3 +126,33 @@ function checkDistractions(url) {
     sendToBackend("The user has disobeyed the instruction. The user has chosen to indulge in worthless brainrot entertainment.");
   }
 }
+
+function captureScreenshot() {
+  console.log("📸 Taking screenshot...");
+  chrome.tabs.captureVisibleTab(null, {format: 'jpeg', quality: 50}, function(dataUrl) {
+      console.log("✅ Screenshot taken");
+      const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+      
+      fetch('http://127.0.0.1:5000/submit_screenshot', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              screenshot: base64Image
+          }),
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("Gemini Analysis:", data.analysis);
+          sendToBackend(`Gemini analyzed: ${data.analysis}`);
+      })
+      .catch(error => {
+          console.error("Error:", error);
+      });
+  });
+}
+
+// Take screenshots every 5 seconds
+console.log("🚀 Starting screenshot system...");
+setInterval(captureScreenshot, 5000);
