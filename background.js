@@ -2,11 +2,22 @@
 let disobedienceCounter = 0;
 let taskIndex = 0;
 let tasks = [];
+let userName = '';
+
+// Load userName from storage
+chrome.storage.local.get(['userName'], (result) => {
+  if (result.userName) {
+    userName = result.userName;
+  }
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Message received:", message);
   if (message.action === "updateTasks") {
     tasks = message.tasks;
+    if (message.userName) {
+      userName = message.userName;
+    }
     taskIndex = 0;
     startNextTask();
     sendResponse({ status: "tasksUpdated" });
@@ -43,7 +54,7 @@ function checkLeetCodeTask() {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
       disobedienceCounter = 0;
-      sendToBackend("The user has obeyed the instruction. The user has opened the leetcode page.");
+      sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the leetcode page.`);
       chrome.scripting.executeScript(
         {
           target: { tabId: tab.id },
@@ -61,7 +72,7 @@ function checkLeetCodeTask() {
       );
     } else {
       console.log("LeetCode tab not found, checking again in 10 seconds.");
-      sendToBackend("The user has disobeyed the instruction. The user has not opened the leetcode tab.");
+      sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the leetcode tab.`);
       setTimeout(() => checkLeetCodeTask(), 10000);
     }
   });
@@ -92,7 +103,11 @@ function sendToBackend(message) {
   fetch("http://127.0.0.1:5000/log", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, disobedienceCount: disobedienceCounter }),
+    body: JSON.stringify({ 
+      message, 
+      disobedienceCount: disobedienceCounter,
+      userName: userName 
+    }),
   })
     .then((response) => response.json())
     .then((data) => console.log("Data sent to backend:", data))
@@ -111,7 +126,8 @@ function captureScreenshot() {
               'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-              screenshot: base64Image
+              screenshot: base64Image,
+              userName: userName
           }),
       })
       .then(response => response.json())
