@@ -34,6 +34,8 @@ function checkLeetCodeTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
+      disobedienceCounter = 0;
+      sendToBackend("The user has obeyed the instruction. The user has opened the leetcode page.");
       chrome.scripting.executeScript(
         {
           target: { tabId: tab.id },
