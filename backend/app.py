@@ -7,7 +7,10 @@ from collections import deque
 
 import sys
 sys.path.append('../')
+# USE THIS FOR REGULAR TESTING
 from ai.tts import speak_text
+# USE THIS FOR DEMO / TESTING GOOD VOICE
+# from ai.tts_demo import speak_text
 
 load_dotenv()
 app = Flask(__name__)
@@ -23,10 +26,11 @@ MAX_HISTORY_LENGTH = 10
 previous_responses = deque(maxlen=MAX_HISTORY_LENGTH)
 current_tasks = []
 task_index = 0
+current_user = "the user"  # Default name if none provided
 
 def get_context_prompt():
     """Create a context prompt from previous responses and current task"""
-    task_context = f"The user should be working on: {current_tasks[task_index] if current_tasks else 'No task set'}"
+    task_context = f"{current_user} should be working on: {current_tasks[task_index] if current_tasks else 'No task set'}"
     if not previous_responses:
         return task_context + "\nThis is your first observation."
     
@@ -39,6 +43,7 @@ def analyze_screenshot_with_gpt4o(screenshot_base64):
     try:
         print("\n=== Starting GPT-4o Vision Analysis ===")
         print(f"Current task: {current_tasks[task_index] if current_tasks else 'No task set'}")
+        print(f"Current user: {current_user}")
         
         context_prompt = get_context_prompt()
         
@@ -47,22 +52,23 @@ def analyze_screenshot_with_gpt4o(screenshot_base64):
             messages=[
                 {
                     "role": "system",
-                    "content": """You are a narrator in the style of The Stanley Parable, observing the user's screen and their assigned task.
+                    "content": f"""You are a narrator in the style of The Stanley Parable, observing {current_user}'s screen and their assigned task.
 
 Your characteristics:
 - Pay close attention to what's on screen and if it matches their assigned task
-- When they're focused on their task: become quietly approving, subtle encouragement
-- When they're distracted or off-task: unleash witty, entertainingly condescending commentary
+- When {current_user} is focused on their task: become quietly approving, subtle encouragement
+- When {current_user} is distracted or off-task: unleash witty, entertainingly condescending commentary
 - Be specific about what you see that indicates focus or distraction
 - Maintain continuity with your previous observations
-- Keep responses to one impactful sentence"""
+- Always refer to the user in third person as "{current_user}"
+- Keep responses to one, concise impactful sentence"""
                 },
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": f"{context_prompt}\n\nExamine this new image - what is actually on the user's screen and how does it relate to what they're supposed to be doing?"
+                            "text": f"{context_prompt}\n\nExamine this new image - what is actually on {current_user}'s screen and how does it relate to what they're supposed to be doing?"
                         },
                         {
                             "type": "image_url",
@@ -77,7 +83,7 @@ Your characteristics:
         )
         
         analysis = response.choices[0].message.content
-        print("🤖 GPT-4o says:", analysis)
+        # print("🤖 GPT-4o says:", analysis)
         
         previous_responses.append(analysis)
         return analysis
@@ -90,10 +96,16 @@ Your characteristics:
 def submit_screenshot():
     try:
         print("\n📸 New Screenshot Received")
+        global current_user
         
         data = request.json
         if not data or 'screenshot' not in data:
             return jsonify({"error": "No screenshot data provided"}), 400
+
+        # Update current user if provided
+        if 'userName' in data and data['userName']:
+            current_user = data['userName']
+            print(f"👤 User identified as: {current_user}")
 
         analysis = analyze_screenshot_with_gpt4o(data['screenshot'])
         
@@ -119,7 +131,7 @@ def submit_screenshot():
 
 @app.route('/submit_task', methods=['POST'])
 def submit_task():
-    global current_tasks, task_index
+    global current_tasks, task_index, current_user
     
     data = request.json
     if not data or 'task' not in data:
@@ -127,6 +139,11 @@ def submit_task():
     
     task = data['task']
     print(f"\n📋 New task submitted: {task}")
+    
+    # Update current user if provided
+    if 'userName' in data and data['userName']:
+        current_user = data['userName']
+        print(f"👤 User identified as: {current_user}")
     
     # Store just the single input task
     current_tasks = [task]
@@ -141,10 +158,17 @@ def submit_task():
     
 @app.route('/log', methods=['POST'])
 def log_data():
+    global current_user
     data = request.json
     message = data.get('message')
     disobedience_count = data.get('disobedienceCount')
+    
+    # Update current user if provided
+    if 'userName' in data and data['userName']:
+        current_user = data['userName']
+    
     print(f"\n📝 Log Entry:")
+    #print(f"User: {current_user}")
     print(f"Message: {message}")
     print(f"Disobedience Count: {disobedience_count}")
     return jsonify({"status": "success"}), 200
