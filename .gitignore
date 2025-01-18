@@ -20,3 +20,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Ignore virtual environment directory
+venv/
