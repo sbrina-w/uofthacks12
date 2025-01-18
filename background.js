@@ -12,6 +12,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "tasksUpdated" });
   } else if (message.action === "sendToBackend") {
     sendToBackend(message.message);
+  } else if (message.action === "submissionResult") {
+    if (message.result) {
+      taskIndex++;
+      disobedienceCounter = 0;
+      sendToBackend(message.message);
+      startNextTask();
+    }
   }
 });
 
@@ -35,6 +42,7 @@ function checkLeetCodeTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
+      disobedienceCounter = 0;
       chrome.scripting.executeScript(
         {
           target: { tabId: tab.id },
@@ -54,6 +62,26 @@ function checkLeetCodeTask() {
       console.log("LeetCode tab not found, checking again in 10 seconds.");
       sendToBackend("The user has disobeyed the instruction. The user has not opened the leetcode tab.");
       setTimeout(() => checkLeetCodeTask(), 10000);
+    }
+  });
+}
+
+function checkJobApplicationTask() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    console.log('started next task: job application');
+    if (tab.url && tab.url.includes("jobportal.com")) {
+      console.log("Job application task is in progress.");
+      disobedienceCounter = 0;
+      taskIndex++;
+      startNextTask();
+    } else {
+      disobedienceCounter++;
+      console.log("Disobedience detected: Job portal URL not found.");
+      sendToBackend("Job application task disobeyed.");
+      setTimeout(() => {
+        checkJobApplicationTask();
+      }, 10000);
     }
   });
 }
@@ -99,3 +127,15 @@ function captureScreenshot() {
 // Take screenshots every 5 seconds
 console.log("🚀 Starting screenshot system...");
 setInterval(captureScreenshot, 5000);
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    checkDistractions(tab.url);
+  });
+});
+
+function checkDistractions(url) {
+  if (url.includes("youtube.com") || url.includes("twitter.com")) {
+    sendToBackend("The user has disobeyed the instruction. The user has chosen to indulge in worthless brainrot entertainment.");
+  }
+}
