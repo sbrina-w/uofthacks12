@@ -2,10 +2,59 @@
 <html>
 <head>
   <title>ProcrastiNarrator</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #clearHistory {
+      background: #dc3545;
+      font-size: 12px;
+      padding: 4px 8px;
+      margin-top: 8px;
+    }
+    #taskHistory {
+      margin-top: 16px;
+      border-top: 1px solid #eee;
+      padding-top: 8px;
+    }
+    .history-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .history-item small {
+      display: block;
+      color: #666;
+      font-size: 0.8em;
+    }
+  </style>
 </head>
 <body>
+  <input type="text" id="nameInput" placeholder="Your name" />
   <input type="text" id="taskInput" placeholder="Task" />
   <button id="submitTask">Submit</button>
+  <div id="stepsDiv"></div>
+  <div id="taskHistory"></div>
+  <button id="clearHistory">Clear History</button>
   <script src="popup.js"></script>
 </body>
 </html>

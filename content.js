@@ -66,6 +66,41 @@ if (!window.__contentScriptInitialized) {
           message:
             "The user has disobeyed the instruction. The user is attempting to cheat their way through the task by opening a LeetCode solution without attempting the problem!",
         });
+      } else if (isLeetCodeSubmissionsPage()) {
+        console.log("Submission page");
+        function checkSubmissionResult() {
+          // poll for the result element since it might not be immediately available
+          const intervalId = setInterval(() => {
+            const resultElement = document.querySelector('[data-e2e-locator="submission-result"]');
+      
+            if (resultElement) {
+              clearInterval(intervalId); // stop checking once the element is found
+      
+              const resultText = resultElement.textContent.trim();
+              console.log("Submission Result Detected:", resultText);
+      
+              if (resultText === "Accepted") {
+                console.log("Submission was successful!");
+                chrome.runtime.sendMessage({
+                  action: "submissionResult",
+                  result: true,
+                  message: "The submission was successful. The user can move onto the next task.",
+                });
+              } else {
+                console.log("Submission failed with status:", resultText);
+                chrome.runtime.sendMessage({
+                  action: "submissionResult",
+                  result: false,
+                  message: "The submission did not pass successfully. The user should try again.",
+                });
+              }
+            } else {
+              console.log("Waiting for the submission result to appear...");
+            }
+          }, 500); 
+        }
+      
+        checkSubmissionResult();
       }
     }
   }
@@ -81,6 +116,13 @@ if (!window.__contentScriptInitialized) {
     return (
       window.location.href.includes("leetcode.com/problems/") &&
       window.location.href.includes("/solutions/")
+    );
+  }
+
+  function isLeetCodeSubmissionsPage() {
+    return (
+      window.location.href.includes("leetcode.com/problems/") &&
+      window.location.href.includes("/submissions/")
     );
   }
 

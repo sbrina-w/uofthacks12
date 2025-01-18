@@ -7,7 +7,7 @@ import pygame
 # Load environment variables
 load_dotenv()
 
-def speak_text(text, voice="ash"):
+def speak_text(text, voice="alloy"):
     """
     Convert text to speech using OpenAI's TTS API and play it.
     

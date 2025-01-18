@@ -2,7 +2,12 @@ import os
 from dotenv import load_dotenv
 from llama_index.llms.openai import OpenAI
 from llama_index.core.llms import ChatMessage
+
+# USE THIS FOR REGULAR TESTING
 from tts import speak_text
+
+# USE THIS FOR DEMO / TESTING GOOD VOICE
+# from tts_demo import speak_text
 
 # Load environment variables
 load_dotenv()

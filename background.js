@@ -1,3 +1,4 @@
+// background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
 let tasks = [];
@@ -11,6 +12,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "tasksUpdated" });
   } else if (message.action === "sendToBackend") {
     sendToBackend(message.message);
+  } else if (message.action === "submissionResult") {
+    if (message.result) {
+      taskIndex++;
+      disobedienceCounter = 0;
+      sendToBackend(message.message);
+      startNextTask();
+    }
   }
 });
 
@@ -59,6 +67,26 @@ function checkLeetCodeTask() {
   });
 }
 
+function checkJobApplicationTask() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    console.log('started next task: job application');
+    if (tab.url && tab.url.includes("jobportal.com")) {
+      console.log("Job application task is in progress.");
+      disobedienceCounter = 0;
+      taskIndex++;
+      startNextTask();
+    } else {
+      disobedienceCounter++;
+      console.log("Disobedience detected: Job portal URL not found.");
+      sendToBackend("Job application task disobeyed.");
+      setTimeout(() => {
+        checkJobApplicationTask();
+      }, 10000);
+    }
+  });
+}
+
 function sendToBackend(message) {
   if (message.includes("disobeyed")) disobedienceCounter++;
   fetch("http://127.0.0.1:5000/log", {
@@ -69,4 +97,46 @@ function sendToBackend(message) {
     .then((response) => response.json())
     .then((data) => console.log("Data sent to backend:", data))
     .catch((error) => console.error("Error sending data to backend:", error));
+}
+
+function captureScreenshot() {
+  console.log("📸 Taking screenshot...");
+  chrome.tabs.captureVisibleTab(null, {format: 'jpeg', quality: 50}, function(dataUrl) {
+      console.log("✅ Screenshot taken");
+      const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+      
+      fetch('http://127.0.0.1:5000/submit_screenshot', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              screenshot: base64Image
+          }),
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("gpt Analysis:", data.analysis);
+          sendToBackend(`gpt analyzed: ${data.analysis}`);
+      })
+      .catch(error => {
+          console.error("Error:", error);
+      });
+  });
+}
+
+// Take screenshots every 10 seconds
+console.log("🚀 Starting screenshot system...");
+setInterval(captureScreenshot, 10000);
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+    checkDistractions(tab.url);
+  });
+});
+
+function checkDistractions(url) {
+  if (url.includes("youtube.com") || url.includes("twitter.com")) {
+    sendToBackend("The user has disobeyed the instruction. The user has chosen to indulge in worthless brainrot entertainment.");
+  }
 }
