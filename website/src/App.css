@@ -7,10 +7,32 @@ body {
   height: 100vh;
 }
 
-div {
+.container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 80%;
+  margin-left: 10%;
+}
+
+.left {
+  flex: 1;
   text-align: center;
+}
+
+.right {
+  flex: 2;
+  text-align: left;
 }
 
 h1 {
   font-size: 40px;
+}
+
+div {
+  margin-bottom: 10px;
+}
+
+input {
+  margin-left: 10px;
 }
