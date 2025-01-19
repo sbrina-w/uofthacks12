@@ -1,3 +1,4 @@
+// popup.js
 let currentTask = '';
 let taskHistory = [];
 let userName = '';
@@ -148,6 +149,9 @@ document.getElementById("submitTask").addEventListener("click", () => {
         timestamp: new Date().toISOString(),
         steps: data.steps
       };
+
+      console.log("New Task Object:", newTask);  // Log the new task
+      console.log("New Task Steps:", newTask.steps);  // Log just the steps
       
       taskHistory.push(newTask);
       updateCurrentTaskDisplay(taskValue);
@@ -159,9 +163,10 @@ document.getElementById("submitTask").addEventListener("click", () => {
         displayTaskHistory();
       });
 
+      console.log("Sending to background.js - tasks:", ["leetcode", "job application"]); // Log tasks being sent
       chrome.runtime.sendMessage({ 
         action: "updateTasks", 
-        tasks: data.steps,
+        tasks: ["leetcode", "job application"],
         userName: userName 
       });
     })

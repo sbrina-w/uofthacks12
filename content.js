@@ -7,6 +7,7 @@ if (!window.__contentScriptInitialized) {
     let visitedProblemPage = false;
     let currentUrl = window.location.href;
     let isTracking = false;
+  let currentAudio = null;
 
     const profanities = [
       "shut up",
@@ -34,26 +35,29 @@ if (!window.__contentScriptInitialized) {
       }
     });
 
-    if (!window.__observerInitialized) {
-      window.__observerInitialized = true;
-
-      const observer = new MutationObserver(() => {
-        if (window.location.href !== currentUrl) {
-          console.log("URL changed (via MutationObserver):", window.location.href);
-          handleUrlChange(window.location.href);
-        }
-      });
-
-      observer.observe(document, { subtree: true, childList: true });
-    }
-
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (message.action === "startTracking") {
-        console.log("Tracking started on this page.");
-        startTracking();
-        sendResponse({ status: "trackingStarted" });
+  if (!window.__observerInitialized) {
+    window.__observerInitialized = true;
+  
+    const observer = new MutationObserver(() => {
+      if (window.location.href !== currentUrl) {
+        console.log("URL changed (via MutationObserver):", window.location.href);
+        handleUrlChange(window.location.href);
       }
     });
+  
+    observer.observe(document, { subtree: true, childList: true });
+  }
+  
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "startTracking") {
+      console.log("Tracking started on this page.");
+      startTracking();
+      sendResponse({ status: "trackingStarted" });
+    } else if (message.action === "playAudio") {  // Add this block
+      playAudio(message.audioPath);
+      sendResponse({ status: "audio playing" });
+    }
+  });
 
     const originalPushState = history.pushState;
     history.pushState = function (...args) {
@@ -67,64 +71,78 @@ if (!window.__contentScriptInitialized) {
       handleUrlChange(window.location.href);
     });
 
-    function handleUrlChange(newUrl) {
-      if (newUrl !== currentUrl) {
-        console.log("URL changed from", currentUrl, "to", newUrl);
-        currentUrl = newUrl;
-        console.log(isLeetCodeSolutionsPage(), hasTyped)
-        if (currentUrl.includes("job-application") && currentUrl.includes("/submitted")) {
-          console.log("User submitted job application");
-          chrome.runtime.sendMessage({
-            action: "sendToBackend",
-            message:
-              "The user has obeyed the instruction. The user has successfully submitted a job application",
-          });
-        }
-        if (isLeetCodeSolutionsPage() && visitedProblemPage && !hasTyped) {
-          console.log("User jumped straight to the solution without attempting the problem.");
-          chrome.runtime.sendMessage({
-            action: "sendToBackend",
-            message:
-              "The user has disobeyed the instruction. The user is attempting to cheat their way through the task by opening a LeetCode solution without attempting the problem!",
-          });
-        } else if (isLeetCodeSubmissionsPage()) {
-          console.log("Submission page");
-          function checkSubmissionResult() {
-            // poll for the result element since it might not be immediately available
-            const intervalId = setInterval(() => {
-              const resultElement = document.querySelector('[data-e2e-locator="submission-result"]');
+  function playAudio(audioPath) {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    currentAudio = new Audio(`http://127.0.0.1:5000${audioPath}`);
+    currentAudio.play().catch(e => console.error("Error playing audio:", e));
+  }
 
-              if (resultElement) {
-                clearInterval(intervalId); // stop checking once the element is found
-
-                const resultText = resultElement.textContent.trim();
-                console.log("Submission Result Detected:", resultText);
-
-                if (resultText === "Accepted") {
-                  console.log("Submission was successful!" + onJobTask);
-                  chrome.runtime.sendMessage({
-                    action: "submissionResult",
-                    result: true,
-                    message: "The submission was successful. The user can move onto the next task.",
-                  });
-                } else {
-                  console.log("Submission failed with status:", resultText);
-                  chrome.runtime.sendMessage({
-                    action: "submissionResult",
-                    result: false,
-                    message: "The submission did not pass successfully. The user should try again.",
-                  });
-                }
+  function handleUrlChange(newUrl) {
+    if (newUrl !== currentUrl) {
+      console.log("URL changed from", currentUrl, "to", newUrl);
+      currentUrl = newUrl;
+      console.log(isLeetCodeSolutionsPage(), hasTyped)
+      if (currentUrl.includes("job-application") && currentUrl.includes("/submitted")) {
+        console.log("User submitted job application - Demo complete");
+        chrome.runtime.sendMessage({
+            action: "demoComplete",
+            message: "The user has obeyed the instruction. The user has successfully submitted a job application, they completed their task."
+        });
+        // Stop all tracking and event listeners
+        isTracking = false;
+        document.removeEventListener("mousemove", resetInactivityTimer);
+        document.removeEventListener("click", resetInactivityTimer);
+        document.removeEventListener("keydown", resetInactivityTimer);
+        return; // Exit the handler
+    }
+      if (isLeetCodeSolutionsPage() && visitedProblemPage && !hasTyped) {
+        console.log("User jumped straight to the solution without attempting the problem.");
+        chrome.runtime.sendMessage({
+          action: "sendToBackend",
+          message:
+            "The user has disobeyed the instruction. The user is attempting to cheat their way through the task by opening a LeetCode solution without attempting the problem!",
+        });
+      } else if (isLeetCodeSubmissionsPage()) {
+        console.log("Submission page");
+        function checkSubmissionResult() {
+          // poll for the result element since it might not be immediately available
+          const intervalId = setInterval(() => {
+            const resultElement = document.querySelector('[data-e2e-locator="submission-result"]');
+      
+            if (resultElement) {
+              clearInterval(intervalId); // stop checking once the element is found
+      
+              const resultText = resultElement.textContent.trim();
+              console.log("Submission Result Detected:", resultText);
+      
+              if (resultText === "Accepted") {
+                console.log("Submission was successful!");
+                chrome.runtime.sendMessage({
+                  action: "submissionResult",
+                  result: true,
+                  message: "The submission was successful. The user can move onto the next task.",
+                });
               } else {
-                console.log("Waiting for the submission result to appear...");
+                console.log("Submission failed with status:", resultText);
+                chrome.runtime.sendMessage({
+                  action: "submissionResult",
+                  result: false,
+                  message: "The submission did not pass successfully. The user should try again.",
+                });
               }
-            }, 500);
-          }
-
-          checkSubmissionResult();
+            } else {
+              console.log("Waiting for the submission result to appear...");
+            }
+          }, 500); 
         }
+      
+        checkSubmissionResult();
       }
     }
+  }
 
     function isLeetCodeProblemPage() {
       return (
