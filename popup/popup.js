@@ -122,24 +122,6 @@ document.getElementById("submitTask").addEventListener("click", () => {
     return;
   }
 
-  const newTask = {
-    task: taskValue,
-    name: userName,
-    timestamp: new Date().toISOString(),
-    steps: ["leetcode", "submit application"] // Hard-coded steps
-  };
-  
-  taskHistory.push(newTask);
-  updateCurrentTaskDisplay(taskValue);
-
-  // Update storage
-  chrome.storage.local.set({
-    taskHistory: taskHistory
-  }, () => {
-    taskInput.value = "";
-    displayTaskHistory();
-  });
-
   fetch("http://127.0.0.1:5000/submit_task", {
     method: "POST",
     headers: {
@@ -157,14 +139,38 @@ document.getElementById("submitTask").addEventListener("click", () => {
       return response.json();
     })
     .then(data => {
-      chrome.runtime.sendMessage({ 
-        action: "updateTasks", 
-        tasks: newTask.steps, // Send steps array instead of single task
-        userName: userName 
-      });
+      if (data.status === "success") {
+        const newTask = {
+          task: taskValue,
+          name: userName,
+          timestamp: new Date().toISOString(),
+          steps: data.steps  // Use the steps from GPT-4o
+        };
+        
+        taskHistory.push(newTask);
+        updateCurrentTaskDisplay(taskValue);
+
+        // Update storage
+        chrome.storage.local.set({
+          taskHistory: taskHistory
+        }, () => {
+          taskInput.value = "";
+          displayTaskHistory();
+        });
+
+        chrome.runtime.sendMessage({ 
+          action: "updateTasks", 
+          tasks: data.steps,
+          userName: userName 
+        });
+      } else {
+        console.error("Error:", data.message);
+        alert("Failed to generate steps for task");
+      }
     })
     .catch(error => {
       console.error("Error submitting task:", error);
+      alert("Error submitting task");
     });
 });
 
