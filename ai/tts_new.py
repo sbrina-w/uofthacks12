@@ -37,16 +37,24 @@ def speak_text(text, mood="normal"):
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         
-        # Save to a static location in the extension's public path
-        speech_file_path = Path("website/public/speech.mp3")
+        # Create public directory in root if it doesn't exist
+        root_dir = Path(__file__).parent.parent  # Go up one level from ai directory
+        public_dir = root_dir / "public"
+        public_dir.mkdir(exist_ok=True)
+        
+        # Save to root's public directory
+        speech_file_path = public_dir / "speech.mp3"
+        
+        # Write response to file
         with open(speech_file_path, "wb") as f:
             f.write(response.content)
             
-        return "/speech.mp3"  # Return the public URL path
+        print(f"Audio file saved to: {speech_file_path.absolute()}")
+        return True
         
     except Exception as e:
         print(f"Error generating speech: {str(e)}")
-        return None
+        return False
 
 if __name__ == "__main__":
     # Test normal voice

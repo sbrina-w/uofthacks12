@@ -1,44 +1,53 @@
 import os
 from pathlib import Path
-import pygame
-from gtts import gTTS
+from openai import OpenAI
+from dotenv import load_dotenv
 
-def speak_text(text, voice="en-GB"):
+# Load environment variables
+load_dotenv()
+
+# Get OpenAI API key
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+def speak_text(text, mood="normal"):
     """
-    Convert text to speech using Google Text-to-Speech API and play it.
-    
-    Args:
-        text (str): The text to convert to speech
-        voice (str): The language/accent to use (default is British English)
+    Convert text to speech using OpenAI TTS API and save to file.
+    Returns the filename if successful.
     """
     try:
-        # Create speech file
-        speech_file_path = Path("speech.mp3")
+        client = OpenAI(api_key=OPENAI_API_KEY)
         
-        # Generate speech using gTTS
-        tts = gTTS(text=text, lang='en', tld='co.uk')
-        tts.save(str(speech_file_path))
+        # OpenAI TTS request
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="onyx",
+            input=text
+        )
         
-        # Initialize pygame mixer
-        pygame.mixer.init()
+        # Create public directory in root if it doesn't exist
+        root_dir = Path(__file__).parent.parent  # Go up one level from ai directory
+        public_dir = root_dir / "public"
+        public_dir.mkdir(exist_ok=True)
         
-        # Load and play the audio
-        pygame.mixer.music.load(str(speech_file_path))
-        pygame.mixer.music.play()
+        # Save to root's public directory
+        speech_file_path = public_dir / "speech.mp3"
         
-        # Wait for the audio to finish playing
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
+        # Write response to file
+        response.stream_to_file(str(speech_file_path))
+        print(f"Audio file saved to: {speech_file_path.absolute()}")
             
-        # Clean up
-        pygame.mixer.quit()
-        
-        # Remove the temporary audio file
-        speech_file_path.unlink()
+        return True
         
     except Exception as e:
-        print(f"Error in text-to-speech: {str(e)}")
+        print(f"Error generating speech: {str(e)}")
+        return False
 
 if __name__ == "__main__":
-    # Test the function
-    speak_text("Hello! This is a test of the text-to-speech system.")
+    # Test the voice
+    test_text = "This is a test of the text-to-speech system."
+    print("\nTesting voice generation...")
+    result = speak_text(test_text)
+    if result:
+        print("Test successful - check the public/speech.mp3 file")
+    else:
+        print("Test failed")
