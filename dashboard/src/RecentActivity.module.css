@@ -93,12 +93,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0; /* For text truncation */
 }
 
 .appDetails {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .appDetails h3 {
@@ -106,6 +108,9 @@
   font-size: 1rem;
   color: var(--text-color);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .duration {
@@ -116,6 +121,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  flex-shrink: 0;
 }
 
 .timestamp {
@@ -165,6 +171,13 @@
 
 .viewAllButton:hover {
   background-color: var(--background-color);
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--text-color);
+  opacity: 0.6;
+  padding: 2rem 0;
 }
 
 @keyframes slideIn {

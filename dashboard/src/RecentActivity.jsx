@@ -1,21 +1,27 @@
-import React from 'react';
-import { FaClock, FaCode, FaNoteSticky, FaSlack } from 'react-icons/fa6';
+import React, { useState, useEffect } from 'react';
+import { FaClock, FaListCheck } from 'react-icons/fa6';
 import styles from './RecentActivity.module.css';
 
-const getAppIcon = (appName) => {
-  switch (appName.toLowerCase()) {
-    case 'vs code':
-      return <FaCode />;
-    case 'notion':
-      return <FaNoteSticky />;
-    case 'slack':
-      return <FaSlack />;
-    default:
-      return <FaClock />;
-  }
-};
+const RecentActivity = () => {
+  const [activities, setActivities] = useState([]);
 
-const RecentActivity = ({ activities }) => {
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/get_tasks');
+        const data = await response.json();
+        setActivities(data.tasks);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      }
+    };
+
+    fetchActivities();
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchActivities, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className={styles.activityCard}>
       <div className={styles.header}>
@@ -26,31 +32,44 @@ const RecentActivity = ({ activities }) => {
       </div>
 
       <div className={styles.activityList}>
-        {activities.map((activity) => (
-          <div key={activity.id} className={styles.activityItem}>
+        {activities.map((activity, index) => (
+          <div 
+            key={index} 
+            className={styles.activityItem}
+            style={{ '--index': index }}  // For staggered animation
+          >
             <div className={styles.appIcon}>
-              {getAppIcon(activity.app)}
+              <FaListCheck />
             </div>
             
             <div className={styles.activityInfo}>
               <div className={styles.appDetails}>
-                <h3>{activity.app}</h3>
-                <span className={styles.duration}>{activity.duration}</span>
+                <h3>{activity.task}</h3>
+                <span className={styles.duration}>New Task</span>
               </div>
-              <div className={styles.timestamp}>{activity.timestamp}</div>
+              <div className={styles.timestamp}>
+                {new Date(activity.timestamp).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit'
+                })}
+              </div>
             </div>
             
             <div className={styles.timeBar}>
               <div 
                 className={styles.timeProgress} 
-                style={{ 
-                  width: `${Math.min(parseInt(activity.duration), 180) / 180 * 100}%`
-                }} 
+                style={{ width: '100%' }}
               />
             </div>
           </div>
         ))}
       </div>
+
+      {activities.length === 0 && (
+        <div className={styles.emptyState}>
+          <p>No recent activity</p>
+        </div>
+      )}
 
       <button className={styles.viewAllButton}>
         View All Activity
