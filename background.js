@@ -153,7 +153,7 @@ function captureScreenshot() {
 
 // Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 10000);
+setInterval(captureScreenshot, 100000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
