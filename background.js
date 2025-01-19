@@ -4,6 +4,23 @@ let taskIndex = 0;
 let tasks = [];
 let userName = '';
 
+let connectedPorts = [];
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === "counterMonitor") {
+    connectedPorts.push(port);
+    
+    port.postMessage({ 
+      type: "counterUpdate", 
+      value: disobedienceCounter 
+    });
+
+    port.onDisconnect.addListener(() => {
+      connectedPorts = connectedPorts.filter(p => p !== port);
+    });
+  }
+});
+
 // Load userName from storage
 chrome.storage.local.get(['userName'], (result) => {
   if (result.userName) {
@@ -28,9 +45,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.result) {
       taskIndex++;
       disobedienceCounter = 0;
+      notifyCounterChange();
       sendToBackend(message.message);
       startNextTask();
     }
+  } else if (message.action === "getDisobeyCounter") {
+    sendResponse({ counter: disobedienceCounter });
   } else if (message.action === "demoComplete") {
     sendToBackend(message.message);
     // Clear any ongoing tasks or checks
@@ -83,6 +103,7 @@ function checkLeetCodeTask() {
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
       console.log("LeetCode problems tab found, starting tracking.");
       disobedienceCounter = 0;
+      notifyCounterChange();
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the leetcode page.`);
       chrome.scripting.executeScript(
         {
@@ -129,6 +150,7 @@ function checkJobApplicationTask() {
     }
     if (tab.url && tab.url.includes("job-application")) {
       disobedienceCounter = 0;
+      notifyCounterChange();
       taskIndex++;
       startNextTask();
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the job application page.`);
@@ -175,6 +197,7 @@ function checkJobApplicationTask() {
 
 function sendToBackend(message) {
   if (message.includes("disobeyed")) disobedienceCounter++;
+  notifyCounterChange();
   fetch("http://127.0.0.1:5000/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -208,6 +231,15 @@ function captureScreenshot() {
   chrome.tabs.captureVisibleTab(null, {format: 'jpeg', quality: 50}, function(dataUrl) {
     console.log("✅ Screenshot taken");
     currentScreenshot = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+  });
+}
+
+function notifyCounterChange() {
+  connectedPorts.forEach(port => {
+    port.postMessage({ 
+      type: "counterUpdate", 
+      value: disobedienceCounter 
+    });
   });
 }
 
