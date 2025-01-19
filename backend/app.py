@@ -30,6 +30,7 @@ if not MONGODB_URI:
 client = MongoClient(MONGODB_URI, tls=True, tlsAllowInvalidCertificates=True)
 db = client['procrastinator']
 activities_collection = db['activities']
+todos_collection = db['todos']
 
 def record_activity(activity_type, description, metadata=None):
     """Record an activity in MongoDB"""
@@ -46,6 +47,63 @@ def record_activity(activity_type, description, metadata=None):
     except Exception as e:
         print(f"❌ Error recording activity: {str(e)}")
         return None
+
+@app.route('/todos', methods=['GET'])
+def get_todos():
+    try:
+        todos = list(todos_collection.find(
+            {}, 
+            {"_id": 0, "id": 1, "text": 1, "done": 1}
+        ))
+        return jsonify({"todos": todos}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/todos', methods=['POST'])
+def add_todo():
+    try:
+        data = request.json
+        if not data or 'text' not in data:
+            return jsonify({"error": "Invalid data"}), 400
+        
+        new_todo = {
+            "id": str(datetime.now().timestamp()),  # Using timestamp as ID
+            "text": data['text'],
+            "done": False
+        }
+        
+        todos_collection.insert_one(new_todo)
+        # Remove _id from response
+        new_todo.pop('_id', None)
+        return jsonify({"todo": new_todo}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/todos/<todo_id>', methods=['PUT'])
+def toggle_todo(todo_id):
+    try:
+        todo = todos_collection.find_one({"id": todo_id})
+        if not todo:
+            return jsonify({"error": "Todo not found"}), 404
+        
+        new_status = not todo['done']
+        todos_collection.update_one(
+            {"id": todo_id},
+            {"$set": {"done": new_status}}
+        )
+        return jsonify({"status": "success", "done": new_status}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/todos/<todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    try:
+        result = todos_collection.delete_one({"id": todo_id})
+        if result.deleted_count == 0:
+            return jsonify({"error": "Todo not found"}), 404
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/submit_screenshot', methods=['POST'])

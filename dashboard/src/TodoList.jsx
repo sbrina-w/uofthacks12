@@ -1,41 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCheckCircle, FaPlus, FaRegCircle, FaTrash } from 'react-icons/fa';
 import styles from './TodoList.module.css';
 
-const TodoList = ({ todos, setTodos }) => {
+const TodoList = () => {
+  const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddTodo = (e) => {
+  // Fetch todos on component mount and every 10 seconds
+  useEffect(() => {
+    fetchTodos();
+    
+    // Set up interval for periodic fetching
+    const interval = setInterval(fetchTodos, 10000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/todos');
+      const data = await response.json();
+      setTodos(data.todos);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddTodo = async (e) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
     
-    setTodos(prev => [...prev, {
-      id: Date.now(),
-      text: newTodo.trim(),
-      done: false
-    }]);
-    setNewTodo('');
+    try {
+      const response = await fetch('http://127.0.0.1:5000/todos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: newTodo.trim() })
+      });
+      
+      const data = await response.json();
+      if (data.todo) {
+        setTodos(prev => [...prev, data.todo]);
+        setNewTodo('');
+      }
+    } catch (error) {
+      console.error('Error adding todo:', error);
+    }
   };
 
-  const toggleTodo = (id) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id ? { ...todo, done: !todo.done } : todo
-    ));
+  const toggleTodo = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/todos/${id}`, {
+        method: 'PUT'
+      });
+      
+      const data = await response.json();
+      if (data.status === 'success') {
+        setTodos(prev => prev.map(todo => 
+          todo.id === id ? { ...todo, done: data.done } : todo
+        ));
+      }
+    } catch (error) {
+      console.error('Error toggling todo:', error);
+    }
   };
 
-  const deleteTodo = (id) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
+  const deleteTodo = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/todos/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        setTodos(prev => prev.filter(todo => todo.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
   };
 
   const completedCount = todos.filter(todo => todo.done).length;
   const totalCount = todos.length;
   const progressPercentage = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
 
+  if (isLoading) {
+    return (
+      <div className={styles.todoCard}>
+        <div className={styles.loading}>Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.todoCard}>
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <h2>Tasks</h2>
+          <h2>To-Do List</h2>
           <div className={styles.progress}>
             <span>{completedCount}/{totalCount}</span>
           </div>
@@ -52,7 +117,7 @@ const TodoList = ({ todos, setTodos }) => {
       <form onSubmit={handleAddTodo} className={styles.addForm}>
         <input
           type="text"
-          placeholder="Add a new task..."
+          placeholder="Add a new todo..."
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           className={styles.input}
@@ -89,7 +154,7 @@ const TodoList = ({ todos, setTodos }) => {
 
       {todos.length === 0 && (
         <div className={styles.emptyState}>
-          <p>No tasks yet. Add some tasks to get started!</p>
+          <p>No todos yet. Add some tasks to get started!</p>
         </div>
       )}
     </div>

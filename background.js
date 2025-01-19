@@ -1,7 +1,7 @@
 // background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
-let tasks = []; // THESE ARE DIFFERENT THAN TASKS IN POPUP.JS, THESE ARE TASKS ARE THE 'STEPS'
+let tasks = [];
 let userName = '';
 
 // Load userName from storage
@@ -78,28 +78,6 @@ function checkLeetCodeTask() {
   });
 }
 
-/*
-function checkJobApplicationTask() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs[0];
-    console.log('started next task: job application');
-    if (tab.url && tab.url.includes("jobportal.com")) {
-      console.log("Job application task is in progress.");
-      disobedienceCounter = 0;
-      taskIndex++;
-      startNextTask();
-    } else {
-      disobedienceCounter++;
-      console.log("Disobedience detected: Job portal URL not found.");
-      sendToBackend("Job application task disobeyed.");
-      setTimeout(() => {
-        checkJobApplicationTask();
-      }, 10000);
-    }
-  });
-}
-  */
-
 function checkJobApplicationTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
@@ -175,7 +153,7 @@ function captureScreenshot() {
 
 // Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 1000000);
+setInterval(captureScreenshot, 10000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
