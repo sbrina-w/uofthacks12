@@ -14,7 +14,7 @@ import sys
 sys.path.append('../')
 from ai.chatbot import Chatbot
 from ai.generateCustomSteps import generate_steps
-from ai.tts import speak_text
+from ai.tts_demo import speak_text
 
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
@@ -158,35 +158,29 @@ def delete_todo(todo_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/submit_screenshot', methods=['POST'])
-def submit_screenshot():
+@app.route('/chat', methods=['POST'])
+def handle_chat():
     try:
         data = request.json
-        if not data or 'screenshot' not in data:
-            return jsonify({"error": "No screenshot data provided"}), 400
+        if not data or 'message' not in data:
+            return jsonify({"error": "No message provided"}), 400
 
-        # Update current user if provided
-        if 'userName' in data and data['userName']:
-            chatbot.update_user(data['userName'])
-
-        analysis = chatbot.analyze_screenshot(data['screenshot'])
+        message = data['message']
+        screenshot = data.get('screenshot')
         
-        # Speak the analysis using TTS
-        try:
-            speak_text(analysis)
-        except Exception as e:
-            print(f"❌ TTS Error: {str(e)}")
+        analysis = chatbot.analyze_with_context(message, screenshot)
+        audio_path = speak_text(analysis)
         
         return jsonify({
             "status": "success",
             "analysis": analysis,
+            "audio_path": audio_path,
             "previous_responses": list(chatbot.previous_responses)
         }), 200
 
     except Exception as e:
-        error_msg = f"Error: {str(e)}"
         print(f"\n❌ Error: {error_msg}")
-        return jsonify({"error": error_msg}), 500
+        return jsonify({"error": str(e)}), 500
 
 # In your Flask app
 @app.route('/submit_task', methods=['POST'])
@@ -238,6 +232,10 @@ def submit_task():
             "timestamp": datetime.now(pytz.UTC)
         })
 
+        if 'userName' in data and data['userName']:
+            chatbot.update_user(data['userName'])
+        chatbot.update_tasks([task])
+
         response = {
             "status": "success",
             "message": "Task submitted successfully",
@@ -283,6 +281,43 @@ def log_data():
 def initialize_achievements():
     init_leetcode_achievement()
     print("✅ Achievements initialized")
+
+
+# @app.route('/chat', methods=['POST'])
+# def handle_chat():
+#     try:
+#         data = request.json
+#         if not data or 'message' not in data:
+#             return jsonify({"error": "No message provided"}), 400
+
+#         # Update current user if provided
+#         if 'userName' in data and data['userName']:
+#             chatbot.update_user(data['userName'])
+
+#         # Get the message and screenshot
+#         message = data['message']
+#         screenshot = data.get('screenshot')
+        
+#         # Send to chatbot for analysis
+#         analysis = chatbot.analyze_with_context(message, screenshot)
+        
+#         # Speak the analysis using TTS
+#         try:
+#             speak_text(analysis)
+#         except Exception as e:
+#             print(f"❌ TTS Error: {str(e)}")
+        
+#         return jsonify({
+#             "status": "success",
+#             "analysis": analysis,
+#             "previous_responses": list(chatbot.previous_responses)
+#         }), 200
+
+#     except Exception as e:
+#         error_msg = f"Error: {str(e)}"
+#         print(f"\n❌ Error: {error_msg}")
+#         return jsonify({"error": error_msg}), 500
+
 
 if __name__ == "__main__":
     initialize_achievements()

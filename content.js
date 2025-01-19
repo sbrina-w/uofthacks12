@@ -7,6 +7,7 @@ if (!window.__contentScriptInitialized) {
   let visitedProblemPage = false;
   let currentUrl = window.location.href;
   let isTracking = false;
+  let currentAudio = null;
 
   const profanities = [
     "shut up",
@@ -39,6 +40,9 @@ if (!window.__contentScriptInitialized) {
       console.log("Tracking started on this page.");
       startTracking();
       sendResponse({ status: "trackingStarted" });
+    } else if (message.action === "playAudio") {  // Add this block
+      playAudio(message.audioPath);
+      sendResponse({ status: "audio playing" });
     }
   });
 
@@ -54,19 +58,33 @@ if (!window.__contentScriptInitialized) {
     handleUrlChange(window.location.href);
   });
 
+  function playAudio(audioPath) {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    currentAudio = new Audio(`http://127.0.0.1:5000${audioPath}`);
+    currentAudio.play().catch(e => console.error("Error playing audio:", e));
+  }
+
   function handleUrlChange(newUrl) {
     if (newUrl !== currentUrl) {
       console.log("URL changed from", currentUrl, "to", newUrl);
       currentUrl = newUrl;
       console.log(isLeetCodeSolutionsPage(), hasTyped)
       if (currentUrl.includes("job-application") && currentUrl.includes("/submitted")) {
-        console.log("User submitted job application");
+        console.log("User submitted job application - Demo complete");
         chrome.runtime.sendMessage({
-          action: "sendToBackend",
-          message:
-            "The user has obeyed the instruction. The user has successfully submitted a job application",
+            action: "demoComplete",
+            message: "The user has obeyed the instruction. The user has successfully submitted a job application, they completed their task."
         });
-      }
+        // Stop all tracking and event listeners
+        isTracking = false;
+        document.removeEventListener("mousemove", resetInactivityTimer);
+        document.removeEventListener("click", resetInactivityTimer);
+        document.removeEventListener("keydown", resetInactivityTimer);
+        return; // Exit the handler
+    }
       if (isLeetCodeSolutionsPage() && visitedProblemPage && !hasTyped) {
         console.log("User jumped straight to the solution without attempting the problem.");
         chrome.runtime.sendMessage({

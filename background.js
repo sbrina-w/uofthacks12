@@ -31,7 +31,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendToBackend(message.message);
       startNextTask();
     }
-  }
+  } else if (message.action === "demoComplete") {
+    sendToBackend(message.message);
+    // Clear any ongoing tasks or checks
+    tasks = [];
+    taskIndex = 0;
+    disobedienceCounter = 0;
+    // Stop screenshot capture or any other ongoing processes
+    clearInterval(screenshotInterval);
+}
 });
 
 function startNextTask() {
@@ -146,53 +154,96 @@ function checkJobApplicationTask() {
   });
 }
 
+// Old sendToBackend function
+
+// function sendToBackend(message) {
+//   if (message.includes("disobeyed")) disobedienceCounter++;
+//   fetch("http://127.0.0.1:5000/log", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ 
+//       message, 
+//       disobedienceCount: disobedienceCounter,
+//       userName: userName 
+//     }),
+//   })
+//     .then((response) => response.json())
+//     .then((data) => console.log("Data sent to backend:", data))
+//     .catch((error) => console.error("Error sending data to backend:", error));
+// }
 
 function sendToBackend(message) {
   if (message.includes("disobeyed")) disobedienceCounter++;
-  fetch("http://127.0.0.1:5000/log", {
+  fetch("http://127.0.0.1:5000/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
-      message, 
+      message,
+      screenshot: currentScreenshot,
       disobedienceCount: disobedienceCounter,
       userName: userName 
     }),
   })
     .then((response) => response.json())
-    .then((data) => console.log("Data sent to backend:", data))
-    .catch((error) => console.error("Error sending data to backend:", error));
+    .then((data) => {
+      console.log("Chatbot response:", data.analysis);
+      // Send message to all tabs to play audio
+      chrome.tabs.query({}, function(tabs) {
+        tabs.forEach(function(tab) {
+          chrome.tabs.sendMessage(tab.id, {
+            action: "playAudio",
+            audioPath: data.audio_path
+          });
+        });
+      });
+    })
+    .catch((error) => console.error("Error:", error));
 }
+
+let currentScreenshot = null;
 
 function captureScreenshot() {
   console.log("📸 Taking screenshot...");
   chrome.tabs.captureVisibleTab(null, {format: 'jpeg', quality: 50}, function(dataUrl) {
-      console.log("✅ Screenshot taken");
-      const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
-      
-      fetch('http://127.0.0.1:5000/submit_screenshot', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              screenshot: base64Image,
-              userName: userName
-          }),
-      })
-      .then(response => response.json())
-      .then(data => {
-          console.log("gpt Analysis:", data.analysis);
-          sendToBackend(`gpt analyzed: ${data.analysis}`);
-      })
-      .catch(error => {
-          console.error("Error:", error);
-      });
+    console.log("✅ Screenshot taken");
+    currentScreenshot = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
   });
 }
 
 // Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
 setInterval(captureScreenshot, 100000);
+
+// Old capturseScreenshot function
+
+// function captureScreenshot() {
+//   console.log("📸 Taking screenshot...");
+//   chrome.tabs.captureVisibleTab(null, {format: 'jpeg', quality: 50}, function(dataUrl) {
+//       console.log("✅ Screenshot taken");
+//       const base64Image = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+      
+//       fetch('http://127.0.0.1:5000/submit_screenshot', {
+//           method: 'POST',
+//           headers: {
+//               'Content-Type': 'application/json',
+//           },
+//           body: JSON.stringify({
+//               screenshot: base64Image,
+//               userName: userName
+//           }),
+//       })
+//       .then(response => response.json())
+//       .then(data => {
+//           console.log("gpt Analysis:", data.analysis);
+//           sendToBackend(`gpt analyzed: ${data.analysis}`);
+//       })
+//       .catch(error => {
+//           console.error("Error:", error);
+//       });
+//   });
+// }
+
+
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
