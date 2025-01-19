@@ -1,9 +1,15 @@
-// Initialize storage
 let currentTask = '';
 let taskHistory = [];
 let userName = '';
 
-// Load stored data when popup opens
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.local.get(['currentTask', 'taskHistory', 'userName'], (result) => {
     if (result.userName) {
@@ -13,14 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.taskHistory) {
       taskHistory = result.taskHistory;
       displayTaskHistory();
-      // Show the most recent task as current task
       if (taskHistory.length > 0) {
         updateCurrentTaskDisplay(taskHistory[taskHistory.length - 1].task);
       }
     }
   });
 
-  // Set up name editing functionality
   const nameDisplay = document.getElementById('nameDisplay');
   const nameInputContainer = document.getElementById('nameInputContainer');
   const nameInput = document.getElementById('nameInput');
@@ -59,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Set up task input
   const taskInput = document.getElementById('taskInput');
   taskInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -86,7 +89,6 @@ function updateCurrentTaskDisplay(task) {
   }
 }
 
-// Add event listener to the document for delete buttons
 document.addEventListener('click', function(e) {
   if (e.target.closest('.delete-button')) {
     const historyItem = e.target.closest('.history-item');
@@ -99,7 +101,6 @@ function deleteHistoryItem(timestamp) {
   taskHistory = taskHistory.filter(item => item.timestamp !== timestamp);
   chrome.storage.local.set({ taskHistory: taskHistory }, () => {
     displayTaskHistory();
-    // Update current task display after deletion
     if (taskHistory.length > 0) {
       updateCurrentTaskDisplay(taskHistory[taskHistory.length - 1].task);
     } else {
@@ -122,6 +123,8 @@ document.getElementById("submitTask").addEventListener("click", () => {
     return;
   }
 
+  showLoading();
+
   fetch("http://127.0.0.1:5000/submit_task", {
     method: "POST",
     headers: {
@@ -133,44 +136,40 @@ document.getElementById("submitTask").addEventListener("click", () => {
     }),
   })
     .then(response => {
-      if (!response.ok) {
+      if (!response .ok) {
         throw new Error("Failed to submit task");
       }
       return response.json();
     })
     .then(data => {
-      if (data.status === "success") {
-        const newTask = {
-          task: taskValue,
-          name: userName,
-          timestamp: new Date().toISOString(),
-          steps: data.steps  // Use the steps from GPT-4o
-        };
-        
-        taskHistory.push(newTask);
-        updateCurrentTaskDisplay(taskValue);
+      const newTask = {
+        task: taskValue,
+        name: userName,
+        timestamp: new Date().toISOString(),
+        steps: data.steps
+      };
+      
+      taskHistory.push(newTask);
+      updateCurrentTaskDisplay(taskValue);
 
-        // Update storage
-        chrome.storage.local.set({
-          taskHistory: taskHistory
-        }, () => {
-          taskInput.value = "";
-          displayTaskHistory();
-        });
+      chrome.storage.local.set({
+        taskHistory: taskHistory
+      }, () => {
+        taskInput.value = "";
+        displayTaskHistory();
+      });
 
-        chrome.runtime.sendMessage({ 
-          action: "updateTasks", 
-          tasks: data.steps,
-          userName: userName 
-        });
-      } else {
-        console.error("Error:", data.message);
-        alert("Failed to generate steps for task");
-      }
+      chrome.runtime.sendMessage({ 
+        action: "updateTasks", 
+        tasks: data.steps,
+        userName: userName 
+      });
     })
     .catch(error => {
       console.error("Error submitting task:", error);
-      alert("Error submitting task");
+    })
+    .finally(() => {
+      hideLoading();
     });
 });
 
@@ -179,8 +178,8 @@ function displayTaskHistory() {
   
   if (taskHistory.length > 0) {
     const historyHTML = taskHistory
-      .slice(-5) // Show last 5 tasks
-      .reverse() // Show newest first
+      .slice(-5)
+      .reverse()
       .map(entry => {
         const date = new Date(entry.timestamp).toLocaleString(undefined, {
           month: 'short',
@@ -189,7 +188,6 @@ function displayTaskHistory() {
           minute: '2-digit'
         });
 
-        // Add bullet points for steps
         const stepsHTML = entry.steps 
           ? `<div class="history-steps">
               ${entry.steps.map(step => `<li>${step}</li>`).join('')}
@@ -220,7 +218,6 @@ function displayTaskHistory() {
   }
 }
 
-// Clear history button functionality
 document.getElementById("clearHistory").addEventListener("click", () => {
   if (confirm("Are you sure you want to clear all history?")) {
     taskHistory = [];

@@ -8,7 +8,6 @@
       margin: 0;
       padding: 0;
     }
-
     body {
       width: 280px;
       height: 600px;
@@ -17,7 +16,6 @@
       display: flex;
       flex-direction: column;
     }
-
     .container {
       padding: 16px;
       display: flex;
@@ -25,12 +23,9 @@
       height: 100%;
       gap: 16px;
     }
-
-    /* Name section */
     .name-section {
       flex-shrink: 0;
     }
-
     .name-display {
       display: flex;
       align-items: center;
@@ -69,8 +64,6 @@
       display: none;
       margin-top: 8px;
     }
-
-    /* Current task section */
     .current-task {
       padding: 12px 14px;
       background: #e8f5e9;
@@ -95,15 +88,12 @@
       line-height: 1.4;
       word-break: break-word;
     }
-
-    /* Input section */
     .input-section {
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-
     input {
       width: 100%;
       padding: 10px 12px;
@@ -117,7 +107,6 @@
       border-color: #4CAF50;
       box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
     }
-
     button {
       padding: 10px 16px;
       background: #4CAF50;
@@ -133,8 +122,6 @@
       background: #43a047;
       transform: translateY(-1px);
     }
-
-    /* History section */
     .history-section {
       flex-grow: 1;
       display: flex;
@@ -144,7 +131,6 @@
       border-top: 1px solid #e9ecef;
       padding-top: 16px;
     }
-
     .history-header {
       position: sticky;
       top: 0;
@@ -153,23 +139,19 @@
       z-index: 10;
       margin-bottom: 4px;
     }
-
     .history-header h3 {
       color: #343a40;
       font-size: 14px;
       font-weight: 600;
     }
-
     .history-steps {
       margin: 4px 0 8px 16px;
       font-size: 12px;
       color: #666;
     }
-
     .history-steps li {
       margin: 2px 0;
     }
-
     #taskHistory {
       overflow-y: auto;
       flex-grow: 1;
@@ -179,7 +161,6 @@
       scrollbar-width: thin;
       scrollbar-color: #ccc transparent;
     }
-
     #taskHistory::-webkit-scrollbar {
       width: 6px;
     }
@@ -190,13 +171,11 @@
       background-color: #ccc;
       border-radius: 3px;
     }
-
     .history-items {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-
     .history-item {
       padding: 12px;
       border: 1px solid #e9ecef;
@@ -250,8 +229,6 @@
       background: #fff1f0;
       color: #dc3545;
     }
-
-    /* Clear history button */
     #clearHistory {
       margin-top: 8px;
       padding: 8px;
@@ -264,13 +241,51 @@
       opacity: 1;
       background: #c82333;
     }
-
     .hidden {
       display: none;
+    }
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 1000;
+    }
+    .loading-overlay.active {
+      display: flex;
+    }
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #4CAF50;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .loading-overlay p {
+      color: #2e7d32;
+      font-size: 13px;
+      font-weight: 500;
+      margin: 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p>AI is breaking down your task...</p>
+  </div>
   <div class="container">
     <div class="name-section">
       <div class="name-display" id="nameDisplay">
@@ -284,17 +299,14 @@
         <button id="saveName">Save</button>
       </div>
     </div>
-
     <div id="currentTask" class="current-task hidden">
       <h3>Current Task</h3>
       <p id="currentTaskText"></p>
     </div>
-
     <div class="input-section">
       <input type="text" id="taskInput" placeholder="What are you working on?" />
       <button id="submitTask">Submit</button>
     </div>
-
     <div class="history-section">
       <div class="history-header">
         <h3>Recent Tasks</h3>
@@ -305,7 +317,6 @@
       <button id="clearHistory">Clear History</button>
     </div>
   </div>
-
   <script src="popup.js"></script>
 </body>
 </html>
