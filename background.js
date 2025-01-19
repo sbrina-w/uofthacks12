@@ -44,15 +44,33 @@ function startNextTask() {
 function handleTask(task) {
   if (task === "leetcode") {
     checkLeetCodeTask();
-  } else if (task === "apply for job") {
+  } else if (task === "job application") {
     checkJobApplicationTask();
   }
 }
 
 function checkLeetCodeTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs || tabs.length === 0) {
+      console.log("[Error] No active tab found");
+      setTimeout(checkLeetCodeTask, 3000);
+      return;
+    }
+
     const tab = tabs[0];
+    if (!tab) {
+      console.log("[Error] First tab is undefined");
+      setTimeout(checkLeetCodeTask, 3000);
+      return;
+    }
+
+    if (!tab.url) {
+      console.log("[Error] Tab URL is undefined");
+      setTimeout(checkLeetCodeTask, 3000);
+      return;
+    }
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
+      console.log("LeetCode problems tab found, starting tracking.");
       disobedienceCounter = 0;
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the leetcode page.`);
       chrome.scripting.executeScript(
@@ -71,9 +89,9 @@ function checkLeetCodeTask() {
         }
       );
     } else {
-      console.log("LeetCode tab not found, checking again in 10 seconds.");
-      sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the leetcode tab.`);
-      setTimeout(() => checkLeetCodeTask(), 10000);
+      console.log("LeetCode tab not found, checking again in 3 seconds.");
+      // sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the leetcode tab.`);
+      setTimeout(() => checkLeetCodeTask(), 3000);
     }
   });
 }
