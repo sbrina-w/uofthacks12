@@ -8,7 +8,7 @@ import pytz
 import os
 from flask_cors import CORS
 from pathlib import Path
-
+from fuzzywuzzy import fuzz
 
 import sys
 sys.path.append('../')
@@ -33,6 +33,38 @@ client = MongoClient(MONGODB_URI, tls=True, tlsAllowInvalidCertificates=True)
 db = client['procrastinator']
 activities_collection = db['activities']
 todos_collection = db['todos']
+achievements_collection = db['achievements']
+
+
+def init_leetcode_achievement():
+    """Initialize the LeetCode achievement if it doesn't exist"""
+    achievement = achievements_collection.find_one({"id": "leetcode_master"})
+    if not achievement:
+        achievement = {
+            "id": "leetcode_master",
+            "title": "LeetCode Master",
+            "description": "Complete LeetCode programming challenges",
+            "progress": 0,
+            "total": 50,
+            "unlocked": False
+        }
+        achievements_collection.insert_one(achievement)
+        print("✅ LeetCode achievement initialized")
+    return achievement
+
+
+def is_leetcode_task(task_text):
+    """Check if a task is related to LeetCode using fuzzy string matching"""
+    leetcode_variants = ['leetcode', 'leet code', 'leedcode']
+    task_lower = task_text.lower()
+    
+    # Check for exact substring first
+    if any(variant in task_lower for variant in leetcode_variants):
+        return True
+    
+    # Use fuzzy matching for more flexible matching
+    return any(fuzz.partial_ratio(variant, task_lower) > 85 for variant in leetcode_variants)
+
 
 def record_activity(activity_type, description, metadata=None):
     """Record an activity in MongoDB"""
@@ -49,6 +81,24 @@ def record_activity(activity_type, description, metadata=None):
     except Exception as e:
         print(f"❌ Error recording activity: {str(e)}")
         return None
+
+@app.route('/achievements/leetcode', methods=['GET'])
+def get_leetcode_achievement():
+    try:
+        achievement = achievements_collection.find_one(
+            {"id": "leetcode_master"},
+            {"_id": 0}  # Exclude MongoDB's _id field
+        )
+        if not achievement:
+            achievement = init_leetcode_achievement()
+            # Remove _id from response if it exists
+            achievement.pop('_id', None)
+        return jsonify(achievement), 200
+    except Exception as e:
+        print(f"Error getting LeetCode achievement: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/todos', methods=['GET'])
 def get_todos():
@@ -141,40 +191,62 @@ def submit_screenshot():
 # In your Flask app
 @app.route('/submit_task', methods=['POST'])
 def submit_task():
-    data = request.json
-    if not data or 'task' not in data:
-        return jsonify({"error": "Invalid data"}), 400
-    
-    task = data['task']
-    
-    # Generate custom steps using GPT-4o structured output
     try:
-        custom_steps = generate_steps(task)
-        
-        # Add task to MongoDB
+        data = request.json
+        if not data or 'task' not in data:
+            return jsonify({"error": "No task provided"}), 400
+
+        task = data['task']
+        achievement_updated = False
+        achievement = None
+
+        # Check if this is a LeetCode task
+        if is_leetcode_task(task):
+            # Get current achievement state
+            achievement = achievements_collection.find_one({"id": "leetcode_master"})
+            
+            if not achievement:
+                achievement = init_leetcode_achievement()
+
+            # Update achievement progress
+            new_progress = achievement['progress'] + 1
+            achievements_collection.update_one(
+                {"id": "leetcode_master"},
+                {
+                    "$set": {
+                        "progress": new_progress,
+                        "unlocked": new_progress >= achievement['total']
+                    }
+                }
+            )
+            
+            # Get updated achievement for response
+            achievement = achievements_collection.find_one(
+                {"id": "leetcode_master"},
+                {"_id": 0}
+            )
+            achievement_updated = True
+
+        # Record the task
         activities_collection.insert_one({
             "task": task,
-            "steps": custom_steps,
             "timestamp": datetime.now(pytz.UTC)
         })
-        
-        if 'userName' in data and data['userName']:
-            chatbot.update_user(data['userName'])
-        chatbot.update_tasks([task])
-        
-        return jsonify({
+
+        response = {
             "status": "success",
-            "steps": custom_steps
-        }), 200
-        
+            "message": "Task submitted successfully"
+        }
+
+        if achievement_updated:
+            response["achievement"] = achievement
+
+        return jsonify(response), 200
+
     except Exception as e:
-        print(f"Error in /submit_task: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
-    
-    
+        print(f"Error submitting task: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 # Add route to get tasks
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
@@ -199,6 +271,11 @@ def log_data():
     print(f"\n📝 Log Entry: {message}")
     return jsonify({"status": "success"}), 200
 
+def initialize_achievements():
+    init_leetcode_achievement()
+    print("✅ Achievements initialized")
+
 if __name__ == "__main__":
-    print("\n🚀 Starting Flask server...")
+    initialize_achievements()
+    print("🚀 Starting Flask server...")
     app.run(debug=True, port=5000)
