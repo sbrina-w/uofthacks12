@@ -1,8 +1,12 @@
+# app.py
 from flask import Flask, request, jsonify
 import base64
 import os
 from dotenv import load_dotenv
 from collections import deque
+from pymongo import MongoClient
+from datetime import datetime
+import pytz
 
 import sys
 sys.path.append('../')
@@ -11,6 +15,13 @@ from ai.tts import speak_text
 
 load_dotenv()
 app = Flask(__name__)
+
+
+# MongoDB setup
+MONGO_URI = "mongodb+srv://user:Password123!@storage.gjr0z.mongodb.net/"
+client = MongoClient(MONGO_URI)
+db = client['procrastinator']
+activities_collection = db['activities']
 
 # Initialize chatbot
 chatbot = Chatbot()
