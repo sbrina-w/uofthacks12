@@ -1,7 +1,7 @@
 // background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
-let tasks = []; // THESE ARE DIFFERENT THAN TASKS IN POPUP.JS, THESE ARE TASKS ARE THE 'STEPS'
+let tasks = [];
 let userName = '';
 
 // Load userName from storage
@@ -143,7 +143,7 @@ function captureScreenshot() {
 
 // Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 10000);
+setInterval(captureScreenshot, 100000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
