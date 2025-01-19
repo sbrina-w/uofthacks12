@@ -4,6 +4,23 @@ let taskIndex = 0;
 let tasks = [];
 let userName = '';
 
+let connectedPorts = [];
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === "counterMonitor") {
+    connectedPorts.push(port);
+    
+    port.postMessage({ 
+      type: "counterUpdate", 
+      value: disobedienceCounter 
+    });
+
+    port.onDisconnect.addListener(() => {
+      connectedPorts = connectedPorts.filter(p => p !== port);
+    });
+  }
+});
+
 // Load userName from storage
 chrome.storage.local.get(['userName'], (result) => {
   if (result.userName) {
@@ -27,6 +44,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.result) {
       taskIndex++;
       disobedienceCounter = 0;
+      notifyCounterChange();
       sendToBackend(message.message);
       startNextTask();
     }
@@ -56,6 +74,7 @@ function checkLeetCodeTask() {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("leetcode.com/problems/")) {
       disobedienceCounter = 0;
+      notifyCounterChange();
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the leetcode page.`);
       chrome.scripting.executeScript(
         {
@@ -85,6 +104,7 @@ function checkJobApplicationTask() {
     const tab = tabs[0];
     if (tab.url && tab.url.includes("job-application")) {
       disobedienceCounter = 0;
+      notifyCounterChange();
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the job application page.`);
       chrome.scripting.executeScript(
         {
@@ -112,6 +132,7 @@ function checkJobApplicationTask() {
 
 function sendToBackend(message) {
   if (message.includes("disobeyed")) disobedienceCounter++;
+  notifyCounterChange();
   fetch("http://127.0.0.1:5000/log", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -150,6 +171,15 @@ function captureScreenshot() {
       .catch(error => {
           console.error("Error:", error);
       });
+  });
+}
+
+function notifyCounterChange() {
+  connectedPorts.forEach(port => {
+    port.postMessage({ 
+      type: "counterUpdate", 
+      value: disobedienceCounter 
+    });
   });
 }
 
