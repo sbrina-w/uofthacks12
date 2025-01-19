@@ -24,6 +24,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === "sendToBackend") {
     sendToBackend(message.message);
   } else if (message.action === "submissionResult") {
+    console.log("Submission result received by background:", message.result);
     if (message.result) {
       taskIndex++;
       disobedienceCounter = 0;
@@ -34,6 +35,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 function startNextTask() {
+  console.log("Starting next task called...");
   if (taskIndex < tasks.length) {
     const currentTask = tasks[taskIndex];
     console.log(`Starting task: ${currentTask}`);
@@ -98,9 +100,28 @@ function checkLeetCodeTask() {
 
 function checkJobApplicationTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs || tabs.length === 0) {
+      console.log("[Error] No active tab found");
+      setTimeout(checkJobApplicationTask, 3000);
+      return;
+    }
+
     const tab = tabs[0];
+    if (!tab) {
+      console.log("[Error] First tab is undefined");
+      setTimeout(checkJobApplicationTask, 3000);
+      return;
+    }
+
+    if (!tab.url) {
+      console.log("[Error] Tab URL is undefined");
+      setTimeout(checkJobApplicationTask, 3000);
+      return;
+    }
     if (tab.url && tab.url.includes("job-application")) {
       disobedienceCounter = 0;
+      taskIndex++;
+      startNextTask();
       sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the job application page.`);
       chrome.scripting.executeScript(
         {
@@ -119,8 +140,8 @@ function checkJobApplicationTask() {
       );
     } else {
       console.log("Job application tab not found, checking again in 10 seconds.");
-      sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the job application tab.`);
-      setTimeout(() => checkLeetCodeTask(), 10000);
+      //sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the job application tab.`);
+      setTimeout(() => checkLeetCodeTask(), 5000);
     }
   });
 }

@@ -88,7 +88,7 @@ if (!window.__contentScriptInitialized) {
               console.log("Submission Result Detected:", resultText);
       
               if (resultText === "Accepted") {
-                console.log("Submission was successful!" + onJobTask);
+                console.log("Submission was successful!");
                 chrome.runtime.sendMessage({
                   action: "submissionResult",
                   result: true,

@@ -197,6 +197,10 @@ def submit_task():
             return jsonify({"error": "No task provided"}), 400
 
         task = data['task']
+
+        custom_steps = generate_steps(task)
+
+
         achievement_updated = False
         achievement = None
 
@@ -230,12 +234,14 @@ def submit_task():
         # Record the task
         activities_collection.insert_one({
             "task": task,
+            "steps": custom_steps,
             "timestamp": datetime.now(pytz.UTC)
         })
 
         response = {
             "status": "success",
-            "message": "Task submitted successfully"
+            "message": "Task submitted successfully",
+            "steps": custom_steps
         }
 
         if achievement_updated:
@@ -244,8 +250,11 @@ def submit_task():
         return jsonify(response), 200
 
     except Exception as e:
-        print(f"Error submitting task: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in /submit_task: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 # Add route to get tasks
 @app.route('/get_tasks', methods=['GET'])
