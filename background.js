@@ -1,7 +1,7 @@
 // background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
-let tasks = []; // THESE ARE DIFFERENT THAN TASKS IN POPUP.JS, THESE ARE TASKS ARE THE 'STEPS'
+let tasks = [];
 let userName = '';
 
 // Load userName from storage
@@ -81,22 +81,32 @@ function checkLeetCodeTask() {
 function checkJobApplicationTask() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
-    console.log('started next task: job application');
-    if (tab.url && tab.url.includes("jobportal.com")) {
-      console.log("Job application task is in progress.");
+    if (tab.url && tab.url.includes("job-application")) {
       disobedienceCounter = 0;
-      taskIndex++;
-      startNextTask();
+      sendToBackend(`${userName} has obeyed the instruction. ${userName} has opened the job application page.`);
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tab.id },
+          files: ["content.js"],
+        },
+        () => {
+          chrome.tabs.sendMessage(tab.id, { action: "startTracking" }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error("Error:", chrome.runtime.lastError.message);
+            } else {
+              console.log("Response from content.js:", response?.status);
+            }
+          });
+        }
+      );
     } else {
-      disobedienceCounter++;
-      console.log("Disobedience detected: Job portal URL not found.");
-      sendToBackend("Job application task disobeyed.");
-      setTimeout(() => {
-        checkJobApplicationTask();
-      }, 10000);
+      console.log("Job application tab not found, checking again in 10 seconds.");
+      sendToBackend(`${userName} has disobeyed the instruction. ${userName} has not opened the job application tab.`);
+      setTimeout(() => checkLeetCodeTask(), 10000);
     }
   });
 }
+
 
 function sendToBackend(message) {
   if (message.includes("disobeyed")) disobedienceCounter++;
@@ -143,7 +153,7 @@ function captureScreenshot() {
 
 // Take screenshots every 10 seconds
 console.log("🚀 Starting screenshot system...");
-setInterval(captureScreenshot, 10000);
+setInterval(captureScreenshot, 100000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {

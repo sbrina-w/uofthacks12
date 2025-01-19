@@ -16,7 +16,7 @@
 
 .app {
   min-height: 100vh;
-  width: 100%;
+  width: 100vw;
   background-color: var(--background-color);
   overflow-x: hidden;
 }
@@ -65,13 +65,14 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--spacing-unit);
+  position: relative;
 }
 
 .bottomSection {
   width: 100%;
 }
 
-/* Card-like containers for components */
+/* Card-like containers */
 .topSection > div,
 .middleSection > div,
 .bottomSection > div {
@@ -79,9 +80,78 @@
   border-radius: 12px;
   padding: var(--spacing-unit);
   box-shadow: 0 2px 4px var(--shadow-color);
-  height: auto;
-  min-height: 200px;
-  overflow: hidden;
+  position: relative;
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .topSection {
+    grid-template-columns: minmax(300px, 1fr) 2fr;
+  }
+
+  .topSection > div {
+    height: 300px;
+    overflow-y: auto;
+  }
+
+  .middleSection {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .middleSection > div {
+    height: 600px;
+    overflow-y: auto;
+  }
+
+}
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  .mainContent {
+    gap: 1rem;
+  }
+
+  .topSection,
+  .middleSection {
+    height: auto;
+  }
+
+  .topSection > div,
+  .middleSection > div {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .topSection > div,
+  .middleSection > div,
+  .bottomSection > div {
+    padding: 1rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .date {
+    font-size: 0.75rem;
+  }
+
+  .mainContent {
+    padding: 0.75rem;
+  }
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Smooth scrolling */
@@ -100,7 +170,7 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
+  background: gray;
   border-radius: 3px;
 }
 
@@ -108,65 +178,7 @@ html {
   background: var(--primary-color);
 }
 
-/* Base styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Responsive breakpoints */
-@media (min-width: 768px) {
-  .topSection {
-    grid-template-columns: minmax(300px, 1fr) 2fr;
-  }
-
-  .middleSection {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Touch-friendly interactions for mobile */
-@media (hover: none) {
-  .topSection > div,
-  .middleSection > div,
-  .bottomSection > div {
-    cursor: default;
-  }
-}
-
-/* Prevent text size adjustment on orientation change */
+/* Smooth scrolling */
 html {
-  -webkit-text-size-adjust: 100%;
-}
-
-/* Better spacing for smaller screens */
-@media (max-width: 480px) {
-  .mainContent {
-    gap: 1rem;
-  }
-
-  .topSection > div,
-  .middleSection > div,
-  .bottomSection > div {
-    padding: 1rem;
-    min-height: 150px;
-  }
-}
-
-/* Ensure content doesn't overflow on very small screens */
-@media (max-width: 320px) {
-  .header h1 {
-    font-size: 1.25rem;
-  }
-
-  .date {
-    font-size: 0.75rem;
-  }
-
-  .mainContent {
-    padding: 0.75rem;
-  }
+  scroll-behavior: smooth;
 }

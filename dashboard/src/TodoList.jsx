@@ -7,9 +7,15 @@ const TodoList = () => {
   const [newTodo, setNewTodo] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch todos on component mount
+  // Fetch todos on component mount and every 10 seconds
   useEffect(() => {
     fetchTodos();
+    
+    // Set up interval for periodic fetching
+    const interval = setInterval(fetchTodos, 10000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTodos = async () => {

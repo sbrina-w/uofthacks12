@@ -1,3 +1,4 @@
+# app.py
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from collections import deque
@@ -12,6 +13,7 @@ from pathlib import Path
 import sys
 sys.path.append('../')
 from ai.chatbot import Chatbot
+from ai.generateCustomSteps import generate_steps
 from ai.tts import speak_text
 
 env_path = Path(__file__).parent.parent / '.env'
@@ -145,22 +147,34 @@ def submit_task():
     
     task = data['task']
     
-    # Add task to MongoDB
+    # Generate custom steps using GPT-4o structured output
     try:
+        custom_steps = generate_steps(task)
+        
+        # Add task to MongoDB
         activities_collection.insert_one({
             "task": task,
+            "steps": custom_steps,
             "timestamp": datetime.now(pytz.UTC)
         })
+        
+        if 'userName' in data and data['userName']:
+            chatbot.update_user(data['userName'])
+        chatbot.update_tasks([task])
+        
+        return jsonify({
+            "status": "success",
+            "steps": custom_steps
+        }), 200
+        
     except Exception as e:
-        print(f"Error saving to MongoDB: {e}")
+        print(f"Error in /submit_task: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
     
-    # Rest of your existing code...
-    if 'userName' in data and data['userName']:
-        chatbot.update_user(data['userName'])
-    chatbot.update_tasks([task])
     
-    return jsonify({"status": "success"}), 200
-
 # Add route to get tasks
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
