@@ -297,9 +297,11 @@ if (!window.__contentScriptInitialized) {
         let mascotFolder = "mascot-neutral";
 
         if (counter > 4) {
-          mascotFolder = "mascot-angry";
+          mascotFolder = "mascot-super-angry";
         } else if (counter === 0) {
           mascotFolder = "mascot-happy";
+        } else if (counter > 2) {
+          mascotFolder = "mascot-angry";
         }
 
         const mascotImages = [
