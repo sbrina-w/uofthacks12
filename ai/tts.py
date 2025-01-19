@@ -1,23 +1,35 @@
+# tts.py
 import os
+from dotenv import load_dotenv
+from openai import OpenAI
 from pathlib import Path
 import pygame
-from gtts import gTTS
 
-def speak_text(text, voice="en-GB"):
+# Load environment variables
+load_dotenv()
+
+def speak_text(text, voice="alloy"):
     """
-    Convert text to speech using Google Text-to-Speech API and play it.
+    Convert text to speech using OpenAI's TTS API and play it.
     
     Args:
         text (str): The text to convert to speech
-        voice (str): The language/accent to use (default is British English)
+        voice (str): The voice to use (alloy, echo, fable, onyx, nova, or shimmer)
     """
+    api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key)
+    
     try:
         # Create speech file
         speech_file_path = Path("speech.mp3")
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=voice,
+            input=text
+        )
         
-        # Generate speech using gTTS
-        tts = gTTS(text=text, lang='en', tld='co.uk')
-        tts.save(str(speech_file_path))
+        # Save the speech file
+        response.stream_to_file(speech_file_path)
         
         # Initialize pygame mixer
         pygame.mixer.init()
@@ -40,5 +52,5 @@ def speak_text(text, voice="en-GB"):
         print(f"Error in text-to-speech: {str(e)}")
 
 if __name__ == "__main__":
-    # Test the function
-    speak_text("Hello! This is a test of the text-to-speech system.")
+    # Test the function if run directly
+    speak_text("Hello! This is a test of the text to speech system.")
