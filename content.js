@@ -59,6 +59,14 @@ if (!window.__contentScriptInitialized) {
       console.log("URL changed from", currentUrl, "to", newUrl);
       currentUrl = newUrl;
       console.log(isLeetCodeSolutionsPage(), hasTyped)
+      if (currentUrl.includes("job-application") && currentUrl.includes("/submitted")) {
+        console.log("User submitted job application");
+        chrome.runtime.sendMessage({
+          action: "sendToBackend",
+          message:
+            "The user has obeyed the instruction. The user has successfully submitted a job application",
+        });
+      }
       if (isLeetCodeSolutionsPage() && visitedProblemPage && !hasTyped) {
         console.log("User jumped straight to the solution without attempting the problem.");
         chrome.runtime.sendMessage({
@@ -80,7 +88,7 @@ if (!window.__contentScriptInitialized) {
               console.log("Submission Result Detected:", resultText);
       
               if (resultText === "Accepted") {
-                console.log("Submission was successful!");
+                console.log("Submission was successful!" + onJobTask);
                 chrome.runtime.sendMessage({
                   action: "submissionResult",
                   result: true,
