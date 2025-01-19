@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaTrophy, 
   FaStar, 
@@ -11,9 +11,11 @@ import {
   FaBrain,
   FaChartLine,
   FaCheckDouble,
-  FaMedal
+  FaMedal,
+  FaCode,
 } from 'react-icons/fa';
 import styles from './Achievements.module.css';
+import AchievementModal from './AchievementModal';
 
 const achievements = [
   {
@@ -135,10 +137,22 @@ const achievements = [
     total: 100,
     unlocked: false,
     color: "gold"
+  },
+  {
+    id: "leetcode_master",
+    title: "LeetCode Master",
+    description: "Complete LeetCode programming challenges",
+    icon: <FaCode />,
+    progress: 0,
+    total: 50,
+    unlocked: false,
+    color: "blue"
   }
 ];
 
 const Achievement = ({ achievement }) => {
+  if (!achievement) return null;
+  
   const progressPercentage = (achievement.progress / achievement.total) * 100;
   
   return (
@@ -172,6 +186,62 @@ const Achievement = ({ achievement }) => {
 };
 
 const Achievements = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [currentAchievement, setCurrentAchievement] = useState(null);
+  const [localAchievements, setLocalAchievements] = useState(achievements);
+
+  useEffect(() => {
+    const checkLeetCodeAchievement = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/achievements/leetcode');
+        if (!response.ok) {
+          throw new Error('Failed to fetch achievement data');
+        }
+        const leetCodeAchievement = await response.json();
+        
+        if (!leetCodeAchievement) return;
+
+        setLocalAchievements(prev => {
+          const updated = [...prev];
+          const index = updated.findIndex(a => a.id === "leetcode_master");
+          
+          if (index !== -1) {
+            const achievement = updated[index];
+            if (achievement && leetCodeAchievement.progress !== achievement.progress) {
+              // Only show modal if progress has increased
+              if (leetCodeAchievement.progress > achievement.progress) {
+                setCurrentAchievement({
+                  ...leetCodeAchievement,
+                  icon: <FaCode />,
+                  color: "blue"
+                });
+                setShowModal(true);
+              }
+              
+              updated[index] = {
+                ...achievement,
+                progress: leetCodeAchievement.progress,
+                unlocked: leetCodeAchievement.unlocked
+              };
+            }
+          }
+          
+          return updated;
+        });
+      } catch (error) {
+        console.error('Error fetching LeetCode achievement:', error);
+      }
+    };
+
+    const interval = setInterval(checkLeetCodeAchievement, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setCurrentAchievement(null);
+  };
+
   return (
     <div className={styles.achievementsSection}>
       <div className={styles.header}>
@@ -184,10 +254,20 @@ const Achievements = () => {
       </div>
 
       <div className={styles.achievementsGrid}>
-        {achievements.map((achievement) => (
-          <Achievement key={achievement.id} achievement={achievement} />
+        {localAchievements.map((achievement) => (
+          <Achievement 
+            key={achievement.id} 
+            achievement={achievement} 
+          />
         ))}
       </div>
+
+      {showModal && currentAchievement && (
+        <AchievementModal 
+          achievement={currentAchievement}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
