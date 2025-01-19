@@ -8,24 +8,27 @@
     "activeTab",
     "storage",
     "scripting",
-    "desktopCapture",
-    "<all_urls>"
-
+    "desktopCapture"
   ],
   "host_permissions": [
-    "<all_urls>",
-    "https://leetcode.com/*",
-    "https://docs.google.com/*",
-    "https://linkedin.com/*",
-    "https://jobportal.com/*"
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/mascot-neutral/neutral3.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
