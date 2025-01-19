@@ -47,6 +47,7 @@ function startNextTask() {
   if (taskIndex < tasks.length) {
     const currentTask = tasks[taskIndex];
     console.log(`Starting task: ${currentTask}`);
+    sendToBackend(`The user has now started the task ${currentTask}`);
     handleTask(currentTask);
   }
 }
