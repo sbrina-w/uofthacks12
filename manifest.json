@@ -1,8 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "ProcrastiNarrator",
+  "name": "Nudge",
   "description": "Stay on task with a narration of your actions from a third-person perspective, inspired by the game The Stanley Parable.",
+  "browser_action": {
+    "default_icon": "assets/mascot-neutral/128.png",
+    "popup": "shopcmp.htm"  
+  },
   "version": "1.0",
+  "icons": {
+    "16": "assets/mascot-neutral/16.png",
+    "48": "assets/mascot-neutral/48.png",
+    "128": "assets/mascot-neutral/128.png"
+  },
   "permissions": [
     "tabs",
     "activeTab",
