@@ -19,7 +19,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "assets/mascot-neutral/neutral3.png",
+        "assets/mascot-neutral-talk/neutral5.png",
+        "assets/mascot-neutral-talk/neutral6.png",
         "public/speech.mp3"
       ],
       "matches": ["<all_urls>"]

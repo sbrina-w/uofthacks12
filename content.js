@@ -243,7 +243,7 @@ if (!window.__contentScriptInitialized) {
 if (!window.__mascotInjected) {
   window.__mascotInjected = true;
 
-  const mascotUrl = chrome.runtime.getURL("assets/mascot-neutral/neutral3.png");
+  const mascotUrl = chrome.runtime.getURL("assets/mascot-neutral-talk/neutral5.png");
 
   const mascotImage = document.createElement("img");
   mascotImage.src = mascotUrl;
@@ -261,4 +261,19 @@ if (!window.__mascotInjected) {
   mascotImage.style.transition = "transform 0.3s ease";
 
   document.body.appendChild(mascotImage);
+}
+
+if (!window.__mascotAnimated) {
+  window.__mascotAnimated = true;
+
+  let mascotFrame = 1;
+  setInterval(() => {
+    const mascotElement = document.getElementById("floatingMascot");
+    if (mascotElement) {
+      mascotFrame = mascotFrame === 1 ? 2 : 1;
+      mascotElement.src = chrome.runtime.getURL(
+        `assets/mascot-neutral-talk/neutral${mascotFrame + 4}.png`
+      );
+    }
+  }, 400);
 }
