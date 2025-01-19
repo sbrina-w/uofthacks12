@@ -11,23 +11,24 @@
   --error-color: #ef4444;
   --gradient-start: #4f46e5;
   --gradient-end: #818cf8;
+  --spacing-unit: clamp(0.5rem, 2vw, 2rem);
 }
 
 .app {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   background-color: var(--background-color);
   overflow-x: hidden;
 }
 
 .header {
-  padding: 2rem 2rem 0 2rem;
+  padding: var(--spacing-unit);
   background: var(--container-color);
   border-bottom: 1px solid var(--border-color);
 }
 
 .header h1 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   margin: 0;
   color: var(--text-color);
   background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
@@ -37,18 +38,18 @@
 }
 
 .date {
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 2vw, 0.9rem);
   color: var(--text-color);
   opacity: 0.8;
   margin-top: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .mainContent {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
+  gap: var(--spacing-unit);
+  padding: var(--spacing-unit);
   max-width: 1800px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -56,94 +57,42 @@
 
 .topSection {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) 2fr;
-  gap: 1.5rem;
-  height: 300px;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-unit);
 }
 
 .middleSection {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  height: 500px;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-unit);
 }
 
 .bottomSection {
   width: 100%;
 }
 
-/* Add smooth scrolling to the page */
+/* Card-like containers for components */
+.topSection > div,
+.middleSection > div,
+.bottomSection > div {
+  background: var(--container-color);
+  border-radius: 12px;
+  padding: var(--spacing-unit);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  height: auto;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Make sure all sections take up full height */
-.topSection > div,
-.middleSection > div,
-.bottomSection > div {
-  height: 100%;
-}
-
-@media (max-width: 1400px) {
-  .mainContent {
-    padding: 1.5rem;
-  }
-
-  .topSection,
-  .middleSection {
-    gap: 1.25rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .topSection {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .middleSection {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-
-  .mainContent {
-    padding: 1rem;
-  }
-
-  .header {
-    padding: 1.5rem 1.5rem 0 1.5rem;
-  }
-
-  .bottomSection {
-    height: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .header {
-    padding: 1rem 1rem 0 1rem;
-  }
-
-  .header h1 {
-    font-size: 1.75rem;
-  }
-
-  .mainContent {
-    gap: 1rem;
-  }
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-}
-
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -151,10 +100,73 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: gray;
-  border-radius: 4px;
+  background: var(--secondary-color);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-color);
+  background: var(--primary-color);
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+  .topSection {
+    grid-template-columns: minmax(300px, 1fr) 2fr;
+  }
+
+  .middleSection {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Touch-friendly interactions for mobile */
+@media (hover: none) {
+  .topSection > div,
+  .middleSection > div,
+  .bottomSection > div {
+    cursor: default;
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Better spacing for smaller screens */
+@media (max-width: 480px) {
+  .mainContent {
+    gap: 1rem;
+  }
+
+  .topSection > div,
+  .middleSection > div,
+  .bottomSection > div {
+    padding: 1rem;
+    min-height: 150px;
+  }
+}
+
+/* Ensure content doesn't overflow on very small screens */
+@media (max-width: 320px) {
+  .header h1 {
+    font-size: 1.25rem;
+  }
+
+  .date {
+    font-size: 0.75rem;
+  }
+
+  .mainContent {
+    padding: 0.75rem;
+  }
 }

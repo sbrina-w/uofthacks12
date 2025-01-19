@@ -1,5 +1,5 @@
 .activityCard {
-  background-color: var(--container-color);
+  background-color:var(--container-color);
   border-radius: 20px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px var(--shadow-color);
@@ -7,6 +7,7 @@
   flex-direction: column;
   gap: 1.5rem;
   position: relative;
+  overflow: hidden;
   height: 100%;
   box-sizing: border-box;
 }
@@ -52,10 +53,11 @@
   gap: 1rem;
   flex-grow: 1;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding-right: 0rem;
   /* Add padding to top to account for the New badge overflow */
   padding-top: 10px;
   margin-top: -10px;
+  overflow-y: auto;
 }
 
 .activityItem {
@@ -236,7 +238,9 @@
   .activityCard {
     padding: 1rem;
   }
-
+  .activityList {
+    padding-right: 0;
+  }
   .activityItem {
     padding: 0.75rem;
   }
