@@ -99,6 +99,33 @@ if (!window.__contentScriptInitialized) {
         console.error("Error in playAudio:", e);
     }
 }
+    try {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        
+        const timestamp = new Date().getTime();
+        // Use chrome.runtime.getURL to get the correct path within the extension
+        const audioUrl = chrome.runtime.getURL('public/speech.mp3') + `?t=${timestamp}`;
+        
+        currentAudio = new Audio(audioUrl);
+        
+        currentAudio.onerror = (e) => {
+            console.error("Audio error:", e);
+            console.error("Audio source:", currentAudio.src);
+        };
+
+        currentAudio.onloadeddata = () => {
+            console.log("Audio loaded successfully");
+        };
+
+        currentAudio.play()
+            .catch(e => console.error("Error playing audio:", e));
+    } catch (e) {
+        console.error("Error in playAudio:", e);
+    }
+}
 
   function handleUrlChange(newUrl) {
     if (newUrl !== currentUrl) {
@@ -322,6 +349,21 @@ if (!window.__contentScriptInitialized) {
 
         document.body.appendChild(mascotImage);
       }
+
+if (!window.__mascotAnimated) {
+  window.__mascotAnimated = true;
+
+  let mascotFrame = 1;
+  setInterval(() => {
+    const mascotElement = document.getElementById("floatingMascot");
+    if (mascotElement) {
+      mascotFrame = mascotFrame === 1 ? 2 : 1;
+      mascotElement.src = chrome.runtime.getURL(
+        `assets/mascot-neutral-talk/neutral${mascotFrame + 4}.png`
+      );
+    }
+  }, 400);
+}
     }
     injectMascot(currentCounter);
   })();
