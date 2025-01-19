@@ -317,26 +317,11 @@ if (!window.__contentScriptInitialized) {
     function injectMascot(counter) {
       if (!window.__mascotInjected) {
         window.__mascotInjected = true;
-
-        let mascotFolder = "mascot-neutral";
-        if (counter > 4) {
-          mascotFolder = "mascot-angry";
-        } else if (counter == 0) {
-          mascotFolder = "mascot-happy";
-        }
-        const mascotImages = [
-          `${mascotFolder}/1.png`,
-          `${mascotFolder}/2.png`,
-          `${mascotFolder}/3.png`
-        ];
-
-        const randomMascot = mascotImages[Math.floor(Math.random() * mascotImages.length)];
-        const mascotUrl = chrome.runtime.getURL(`assets/${randomMascot}`);
+    
         const mascotImage = document.createElement("img");
-        mascotImage.src = mascotUrl;
         mascotImage.alt = "Mascot";
         mascotImage.id = "floatingMascot";
-
+    
         mascotImage.style.position = "fixed";
         mascotImage.style.bottom = "20px";
         mascotImage.style.right = "20px";
@@ -346,25 +331,35 @@ if (!window.__contentScriptInitialized) {
         mascotImage.style.pointerEvents = "none";
         mascotImage.style.userSelect = "none";
         mascotImage.style.transition = "transform 0.3s ease";
-
+    
         document.body.appendChild(mascotImage);
       }
-
+    
       if (!window.__mascotAnimated) {
         window.__mascotAnimated = true;
-
+    
         let mascotFrame = 1;
+    
         setInterval(() => {
           const mascotElement = document.getElementById("floatingMascot");
           if (mascotElement) {
+            let mascotFolder = "mascot-neutral";
+    
+            if (counter > 4) {
+              mascotFolder = "mascot-angry";
+            } else if (counter === 0) {
+              mascotFolder = "mascot-happy";
+            }
+    
+            const frame = mascotFrame;
             mascotFrame = mascotFrame === 1 ? 2 : 1;
-            mascotElement.src = chrome.runtime.getURL(
-              `assets/mascot-neutral-talk/neutral${mascotFrame + 4}.png`
-            );
+    
+            const mascotUrl = chrome.runtime.getURL(`assets/${mascotFolder}-talk/${frame}.png`);
+            mascotElement.src = mascotUrl;
           }
         }, 400);
       }
     }
-    injectMascot(currentCounter);
+        injectMascot(currentCounter);
   })();
 }
