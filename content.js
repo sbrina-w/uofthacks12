@@ -59,13 +59,33 @@ if (!window.__contentScriptInitialized) {
   });
 
   function playAudio(audioPath) {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
+    try {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        
+        const timestamp = new Date().getTime();
+        // Use chrome.runtime.getURL to get the correct path within the extension
+        const audioUrl = chrome.runtime.getURL('public/speech.mp3') + `?t=${timestamp}`;
+        
+        currentAudio = new Audio(audioUrl);
+        
+        currentAudio.onerror = (e) => {
+            console.error("Audio error:", e);
+            console.error("Audio source:", currentAudio.src);
+        };
+
+        currentAudio.onloadeddata = () => {
+            console.log("Audio loaded successfully");
+        };
+
+        currentAudio.play()
+            .catch(e => console.error("Error playing audio:", e));
+    } catch (e) {
+        console.error("Error in playAudio:", e);
     }
-    currentAudio = new Audio(`http://127.0.0.1:5000${audioPath}`);
-    currentAudio.play().catch(e => console.error("Error playing audio:", e));
-  }
+}
 
   function handleUrlChange(newUrl) {
     if (newUrl !== currentUrl) {

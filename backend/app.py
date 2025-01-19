@@ -14,7 +14,8 @@ import sys
 sys.path.append('../')
 from ai.chatbot import Chatbot
 from ai.generateCustomSteps import generate_steps
-from ai.tts_demo import speak_text
+from ai.tts_new import speak_text
+# from ai.tts import speak_text
 
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
