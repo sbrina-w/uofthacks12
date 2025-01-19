@@ -271,12 +271,28 @@ setInterval(captureScreenshot, 100000);
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
+    console.log("switched tabs")
     checkDistractions(tab.url);
   });
 });
 
-function checkDistractions(url) {
-  if (url.includes("youtube.com") || url.includes("twitter.com")) {
-    sendToBackend("The user has disobeyed the instruction. The user has chosen to indulge in worthless brainrot entertainment.");
+const distractionUrls = ["instagram.com", "youtube.com", "reddit.com"];
+const redirectUrl = "https://important-job-application.vercel.app/";
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    distractionUrls.forEach((distractionUrl) => {
+      if (changeInfo.url.includes(distractionUrl)) {
+        console.log(`User went off task: ${changeInfo.url}`);
+        
+        chrome.tabs.remove(tabId, () => {
+          chrome.tabs.create({ url: redirectUrl });
+        });
+
+        sendToBackend(
+          `The user has disobeyed the instruction. They visited ${distractionUrl} and were redirected.`
+        );
+      }
+    });
   }
-}
+});
