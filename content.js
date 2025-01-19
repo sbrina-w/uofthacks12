@@ -202,25 +202,42 @@ if (!window.__contentScriptInitialized) {
 })();
 }
 
-if (!window.__mascotInjected) {
-  window.__mascotInjected = true;
+chrome.runtime.sendMessage({ action: "getDisobeyCounter" }, (response) => {
+  if (!window.__mascotInjected) {
+    window.__mascotInjected = true;
+    
+    let mascotFolder = "mascot-neutral"; 
 
-  const mascotUrl = chrome.runtime.getURL("assets/mascot-neutral/neutral3.png");
+    if (response.counter > 4) {
+      mascotFolder = "mascot-angry"; 
+    } else if (response.counter == 0) {
+      mascotFolder = "mascot-happy"; 
+    }
+    const mascotImages = [
+      `${mascotFolder}/1.png`,
+      `${mascotFolder}/2.png`,
+      `${mascotFolder}/3.png`
+    ];
 
-  const mascotImage = document.createElement("img");
-  mascotImage.src = mascotUrl;
-  mascotImage.alt = "Mascot";
-  mascotImage.id = "floatingMascot";
+    const randomMascot = mascotImages[Math.floor(Math.random() * mascotImages.length)];
 
-  mascotImage.style.position = "fixed";
-  mascotImage.style.bottom = "20px";
-  mascotImage.style.right = "20px";
-  mascotImage.style.width = "150px";
-  mascotImage.style.height = "150px";
-  mascotImage.style.zIndex = "9999999";
-  mascotImage.style.pointerEvents = "none";
-  mascotImage.style.userSelect = "none";
-  mascotImage.style.transition = "transform 0.3s ease";
+    const mascotUrl = chrome.runtime.getURL(`assets/${randomMascot}`);
 
-  document.body.appendChild(mascotImage);
-}
+    const mascotImage = document.createElement("img");
+    mascotImage.src = mascotUrl;
+    mascotImage.alt = "Mascot";
+    mascotImage.id = "floatingMascot";
+
+    mascotImage.style.position = "fixed";
+    mascotImage.style.bottom = "20px";
+    mascotImage.style.right = "20px";
+    mascotImage.style.width = "150px";
+    mascotImage.style.height = "150px";
+    mascotImage.style.zIndex = "9999999";
+    mascotImage.style.pointerEvents = "none";
+    mascotImage.style.userSelect = "none";
+    mascotImage.style.transition = "transform 0.3s ease";
+
+    document.body.appendChild(mascotImage);
+  }
+});

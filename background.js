@@ -30,6 +30,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendToBackend(message.message);
       startNextTask();
     }
+  } else if (message.action === "getDisobeyCounter") {
+    sendResponse({ counter: disobedienceCounter });
   }
 });
 
