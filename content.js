@@ -7,7 +7,6 @@ if (!window.__contentScriptInitialized) {
     let visitedProblemPage = false;
     let currentUrl = window.location.href;
     let isTracking = false;
-    let currentAudio = null;
 
     const profanities = [
       "shut up",
@@ -53,9 +52,6 @@ if (!window.__contentScriptInitialized) {
         console.log("Tracking started on this page.");
         startTracking();
         sendResponse({ status: "trackingStarted" });
-      } else if (message.action === "playAudio") {  // Add this block
-        playAudio(message.audioPath);
-        sendResponse({ status: "audio playing" });
       }
     });
 
@@ -70,61 +66,6 @@ if (!window.__contentScriptInitialized) {
       console.log("popstate detected:", window.location.href);
       handleUrlChange(window.location.href);
     });
-
-    function playAudio(audioPath) {
-      try {
-        if (currentAudio) {
-          currentAudio.pause();
-          currentAudio = null;
-        }
-
-        const timestamp = new Date().getTime();
-        // Use chrome.runtime.getURL to get the correct path within the extension
-        const audioUrl = chrome.runtime.getURL('public/speech.mp3') + `?t=${timestamp}`;
-
-        currentAudio = new Audio(audioUrl);
-
-        currentAudio.onerror = (e) => {
-          console.error("Audio error:", e);
-          console.error("Audio source:", currentAudio.src);
-        };
-
-        currentAudio.onloadeddata = () => {
-          console.log("Audio loaded successfully");
-        };
-
-        currentAudio.play()
-          .catch(e => console.error("Error playing audio:", e));
-      } catch (e) {
-        console.error("Error in playAudio:", e);
-      }
-    }
-    try {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-
-      const timestamp = new Date().getTime();
-      // Use chrome.runtime.getURL to get the correct path within the extension
-      const audioUrl = chrome.runtime.getURL('public/speech.mp3') + `?t=${timestamp}`;
-
-      currentAudio = new Audio(audioUrl);
-
-      currentAudio.onerror = (e) => {
-        console.error("Audio error:", e);
-        console.error("Audio source:", currentAudio.src);
-      };
-
-      currentAudio.onloadeddata = () => {
-        console.log("Audio loaded successfully");
-      };
-
-      currentAudio.play()
-        .catch(e => console.error("Error playing audio:", e));
-    } catch (e) {
-      console.error("Error in playAudio:", e);
-    }
 
 
     function handleUrlChange(newUrl) {

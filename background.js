@@ -211,15 +211,6 @@ function sendToBackend(message) {
     .then((response) => response.json())
     .then((data) => {
       console.log("Chatbot response:", data.analysis);
-      // Send message to all tabs to play audio
-      chrome.tabs.query({}, function(tabs) {
-        tabs.forEach(function(tab) {
-          chrome.tabs.sendMessage(tab.id, {
-            action: "playAudio",
-            audioPath: data.audio_path
-          });
-        });
-      });
     })
     .catch((error) => console.error("Error:", error));
 }
