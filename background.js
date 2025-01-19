@@ -1,7 +1,7 @@
 // background.js
 let disobedienceCounter = 0;
 let taskIndex = 0;
-let tasks = [];
+let tasks = []; // THESE ARE DIFFERENT THAN TASKS IN POPUP.JS, THESE ARE TASKS ARE THE 'STEPS'
 let userName = '';
 
 // Load userName from storage

@@ -125,7 +125,8 @@ document.getElementById("submitTask").addEventListener("click", () => {
   const newTask = {
     task: taskValue,
     name: userName,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    steps: ["leetcode", "submit application"] // Hard-coded steps
   };
   
   taskHistory.push(newTask);
@@ -158,7 +159,7 @@ document.getElementById("submitTask").addEventListener("click", () => {
     .then(data => {
       chrome.runtime.sendMessage({ 
         action: "updateTasks", 
-        tasks: [taskValue],
+        tasks: newTask.steps, // Send steps array instead of single task
         userName: userName 
       });
     })
@@ -181,9 +182,18 @@ function displayTaskHistory() {
           hour: '2-digit',
           minute: '2-digit'
         });
-        return `<div class="history-item" data-timestamp="${entry.timestamp}">
+
+        // Add bullet points for steps
+        const stepsHTML = entry.steps 
+          ? `<div class="history-steps">
+              ${entry.steps.map(step => `<li>${step}</li>`).join('')}
+             </div>`
+          : '';
+
+          return `<div class="history-item" data-timestamp="${entry.timestamp}">
           <div class="history-content">
             <span>${entry.task}</span>
+            ${stepsHTML}
             <div class="history-details">
               <small>${date}</small>
             </div>
