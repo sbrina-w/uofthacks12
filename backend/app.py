@@ -192,8 +192,10 @@ def submit_task():
             return jsonify({"error": "No task provided"}), 400
 
         task = data['task']
-
-        custom_steps = generate_steps(task)
+        if task == "get a job":
+            custom_steps = ["leetcode", "job application"]
+        else:
+            custom_steps = generate_steps(task)
 
 
         achievement_updated = False
