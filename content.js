@@ -201,3 +201,26 @@ if (!window.__contentScriptInitialized) {
   }
 })();
 }
+
+if (!window.__mascotInjected) {
+  window.__mascotInjected = true;
+
+  const mascotUrl = chrome.runtime.getURL("assets/mascot-neutral/neutral3.png");
+
+  const mascotImage = document.createElement("img");
+  mascotImage.src = mascotUrl;
+  mascotImage.alt = "Mascot";
+  mascotImage.id = "floatingMascot";
+
+  mascotImage.style.position = "fixed";
+  mascotImage.style.bottom = "20px";
+  mascotImage.style.right = "20px";
+  mascotImage.style.width = "150px";
+  mascotImage.style.height = "150px";
+  mascotImage.style.zIndex = "9999999";
+  mascotImage.style.pointerEvents = "none";
+  mascotImage.style.userSelect = "none";
+  mascotImage.style.transition = "transform 0.3s ease";
+
+  document.body.appendChild(mascotImage);
+}

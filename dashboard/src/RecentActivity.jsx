@@ -35,7 +35,7 @@ const TASK_ICONS = [
   FaChartLine
 ];
 
-const TWO_MINUTES = 2 * 60 * 1000; // 2 minutes in milliseconds
+const TWO_MINUTES = 2 * 60 * 1000;
 
 const isNew = (timestamp) => {
   const now = new Date().getTime();
@@ -61,9 +61,10 @@ const RecentActivity = () => {
         const response = await fetch('http://127.0.0.1:5000/get_tasks');
         const data = await response.json();
         
-        const activitiesWithIcons = data.tasks.map(task => ({
+        const activitiesWithIcons = data.tasks.map((task, index) => ({
           ...task,
-          IconComponent: getIconForTask(task.id),
+          uniqueId: `${task.timestamp}-${index}`, // Add a unique ID combining timestamp and index
+          IconComponent: getIconForTask(task.timestamp + index), // Use combined key for icon mapping
           isNew: isNew(task.timestamp)
         }));
         
@@ -93,7 +94,7 @@ const RecentActivity = () => {
           const Icon = activity.isNew ? FaRocket : activity.IconComponent;
           return (
             <div 
-              key={activity.id} 
+              key={activity.uniqueId} // Use the unique ID here
               className={`${styles.activityItem} ${activity.isNew ? styles.latestActivity : ''}`}
               style={{ '--index': index }}
             >

@@ -1,3 +1,4 @@
+// popup.js
 let currentTask = '';
 let taskHistory = [];
 let userName = '';
