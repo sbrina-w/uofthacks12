@@ -27,7 +27,7 @@ chatbot = Chatbot()
 MONGODB_URI = os.getenv('MONGODB_URI')
 if not MONGODB_URI:
     print("⚠️ WARNING: MONGODB_URI not found in .env file!")
-client = MongoClient(MONGODB_URI)
+client = MongoClient(MONGODB_URI, tls=True, tlsAllowInvalidCertificates=True)
 db = client['procrastinator']
 activities_collection = db['activities']
 

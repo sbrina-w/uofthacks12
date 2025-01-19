@@ -7,7 +7,6 @@
   flex-direction: column;
   gap: 1.5rem;
   position: relative;
-  overflow: hidden;
   height: 100%;
   box-sizing: border-box;
 }
@@ -43,7 +42,7 @@
 .header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: var(--text-color);
+  color: #1f2937;
   font-weight: 600;
 }
 
@@ -54,6 +53,9 @@
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 0.5rem;
+  /* Add padding to top to account for the New badge overflow */
+  padding-top: 10px;
+  margin-top: -10px;
 }
 
 .activityItem {
@@ -61,18 +63,41 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--background-color);
+  background-color: #f3f4f6;
   border-radius: 12px;
   transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
+  /* Remove overflow hidden to allow the badge to show */
   animation: slideIn 0.3s ease forwards;
   animation-delay: calc(var(--index, 0) * 0.1s);
 }
 
 .activityItem:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.latestActivity {
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  /* Add padding top to account for the badge */
+  padding-top: 1.25rem;
+}
+
+.newBadge {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  animation: pulse 2s infinite;
+  z-index: 10;
+  white-space: nowrap;
 }
 
 .appIcon {
@@ -88,12 +113,18 @@
   flex-shrink: 0;
 }
 
+.latestActivity .appIcon {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
 .activityInfo {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 0; /* For text truncation */
+  min-width: 0;
 }
 
 .appDetails {
@@ -106,7 +137,7 @@
 .appDetails h3 {
   margin: 0;
   font-size: 1rem;
-  color: var(--text-color);
+  color: #1f2937;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -115,7 +146,6 @@
 
 .duration {
   font-size: 0.875rem;
-  color: var(--primary-color);
   font-weight: 500;
   background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
   -webkit-background-clip: text;
@@ -126,8 +156,7 @@
 
 .timestamp {
   font-size: 0.75rem;
-  color: var(--text-color);
-  opacity: 0.6;
+  color: #6b7280;
 }
 
 .timeBar {
@@ -149,7 +178,7 @@
   padding: 0.75rem;
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--gradient-start);
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -157,7 +186,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid #e5e7eb;
   margin-top: auto;
 }
 
@@ -170,14 +199,26 @@
 }
 
 .viewAllButton:hover {
-  background-color: var(--background-color);
+  background-color: #f3f4f6;
 }
 
 .emptyState {
   text-align: center;
-  color: var(--text-color);
+  color: #6b7280;
   opacity: 0.6;
   padding: 2rem 0;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes slideIn {
@@ -200,6 +241,10 @@
     padding: 0.75rem;
   }
 
+  .latestActivity {
+    padding-top: 1rem;
+  }
+
   .appIcon {
     width: 32px;
     height: 32px;
@@ -210,5 +255,12 @@
     width: 32px;
     height: 32px;
     font-size: 1rem;
+  }
+
+  .newBadge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    top: -8px;
+    right: 8px;
   }
 }
