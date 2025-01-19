@@ -24,3 +24,10 @@ Thumbs.db
 # Ignore virtual environment directory
 venv/
 .vercel
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Generated audio files
+public/speech.mp3
